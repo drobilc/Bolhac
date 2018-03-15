@@ -1,12 +1,23 @@
-from flask import Flask
+from flask import Flask, request, send_from_directory
+from bolha import BolhaSearch
+
 app = Flask(__name__)
 
-@app.route("/")
-def hello():
-	return "Hello World!"
+# Tabela v kateri hranimo vse iskalnike
+searchers = []
 
-@app.route("/add")
+@app.route("/")
+def sendMainPage():
+	return send_from_directory("public", "plugin.html")
+
+@app.route("/add", methods=["POST"])
 def addSearch():
+	keywords = request.form.get("keywords")
+	category = request.form.get("category")
+	searcher = BolhaSearch(q=keywords)
+	searchers.append(searcher)
+	# Interval prenasanja strani je 10 sekund
+	searcher.interval = 10
 	return "ok"
 
 if __name__ == '__main__':

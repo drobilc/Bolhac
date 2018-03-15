@@ -20,6 +20,7 @@ class BolhaSearch(object):
 		}
 
 		self.parameters.update(kwargs)
+		self.interval = 10
 
 		for value in self.parameters:
 			setattr(self, value, self.parameters[value])
