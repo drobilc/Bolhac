@@ -1,14 +1,17 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for
+from threading import Thread, Event
 from bolha import BolhaSearch
+from customthread import BolhaSearchThread
 
 app = Flask(__name__)
+stopFlag = Event()
 
 # Tabela v kateri hranimo vse iskalnike
 searchers = []
 
 @app.route("/")
 def sendMainPage():
-	return send_from_directory("public", "plugin.html")
+	return render_template('index.html', searchers=searchers)
 
 @app.route("/add", methods=["POST"])
 def addSearch():
@@ -17,8 +20,14 @@ def addSearch():
 	searcher = BolhaSearch(q=keywords)
 	searchers.append(searcher)
 	# Interval prenasanja strani je 10 sekund
-	searcher.interval = 10
-	return "ok"
+	searcher.interval = 60
+	return redirect(url_for('sendMainPage'))
 
 if __name__ == '__main__':
+	# Ustvarimo nit v kateri bomo iskali po bolhi
+	searchThread = BolhaSearchThread(stopFlag, 5, searchers)
+	searchThread.daemon = True
+	searchThread.start()
+
+	# Pozenemo streznik
 	app.run(host="0.0.0.0", port=3000, debug=True)

@@ -25,6 +25,8 @@ class BolhaSearch(object):
 		for value in self.parameters:
 			setattr(self, value, self.parameters[value])
 
+		self.foundAds = []
+
 	def search(self, page=1):
 		url = "http://www.bolha.com/iskanje"
 
@@ -43,8 +45,13 @@ class BolhaSearch(object):
 			adId = ad.find("div", {"class": "miscellaneous"}).find("div", {"class": "saveAd"}).find("a")["data-id"]
 			ad = Ad(adId, ad)
 			allAds.append(ad)
-
+			self.foundAds.append(ad)
+			
 		return allAds
+
+	def getUrl(self):
+		realUrl = requests.Request("GET", "http://www.bolha.com/iskanje", params=self.parameters).prepare().url
+		return realUrl
 
 
 class Ad(object):
@@ -67,6 +74,9 @@ class Ad(object):
 
 		adPrice = html.find("div", {"class": "price"})
 		self.price = adPrice.text
+
+	def __cmp__(self, other):
+		return self.id == other.id
 
 	def __repr__(self):
 		return u"{}".format(self.title)

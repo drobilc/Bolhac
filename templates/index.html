@@ -45,7 +45,17 @@
 				<div class="column">
 					<div class="box">
 						<h1 class="title">Active searchers</h1>
-						<p>You have no searchers at the moment.</p>
+						{% if searchers == [] %}
+							<p>You have no searchers at the moment.</p>
+						{% else %}
+							<ul>
+							{% for searcher in searchers %}
+								<li>
+									<a href="{{ searcher.getUrl() }}" target="_blank">{{ searcher.q }}</a><br>
+								</li>
+							{% endfor %}
+							</ul>
+						{% endif %}						
 					</div>
 				</div>
 			</div>
