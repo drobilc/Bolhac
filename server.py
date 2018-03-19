@@ -13,6 +13,18 @@ searchers = []
 def sendMainPage():
 	return render_template('index.html', searchers=searchers)
 
+@app.route("/login", methods=["GET", "POST"])
+def sendLoginPage():
+	email = request.form.get("email")
+	password = request.form.get("password")
+	rememberMe = request.form.get("remember-me")
+
+	if email and password and rememberMe:
+		# Preveri ali uporabnik obstaja
+		pass
+
+	return render_template('login.html')
+
 @app.route("/add", methods=["POST"])
 def addSearch():
 	keywords = request.form.get("keywords")
