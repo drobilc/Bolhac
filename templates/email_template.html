@@ -1,7 +1,12 @@
 <html>
 	<head></head>
 	<body>
-		<h1>Pozdravljen {{ ime }}!</h1>
-		<p></p>
+		<h1>Novi oglasi na Bolhi!</h1>
+		<p>Na bolho je prišlo nekaj novih oglasov.</p>
+		<ul>
+			{% for ad in ads %}
+				<li>{{ ad.title }}</li>
+			{% endfor %}
+		</ul>
 	</body>
 </html>

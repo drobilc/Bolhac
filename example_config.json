@@ -1,0 +1,6 @@
+{
+	"email_server": "smtp.live.com",
+	"email_port": 587,
+	"email_username": "",
+	"email_password": ""
+}
