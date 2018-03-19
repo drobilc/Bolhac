@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+import urllib.parse as urlparse
+import time
 
 class BolhaSearch(object):
 
@@ -53,6 +55,32 @@ class BolhaSearch(object):
 		realUrl = requests.Request("GET", "http://www.bolha.com/iskanje", params=self.parameters).prepare().url
 		return realUrl
 
+	def getNewAds(self):
+		# Hranimo zadnji cas prenosa podatkov (lastTimeChecked)
+		# Ce tega casa se ni, potem ne vemo ali so novi oglasi, ker je to prvic
+		if not hasattr(self, "lastTimeChecked"):
+			# Nastavimo ta cas
+			self.lastTimeChecked = time.time()
+			return []
+		else:
+			newAds = []
+
+			self.parameters["sort"] = 1
+
+			currentPage = 1
+			exit = False
+			while not exit:
+				ads = self.search(page=currentPage)
+				for ad in ads:
+					if hasattr(ad, "timeAdded") and ad.timeAdded > self.lastTimeChecked:
+						newAds.append(ad)
+					elif hasattr(ad, "timeAdded") and ad.timeAdded < self.lastTimeChecked:
+						exit = True
+						break
+				currentPage += 1
+
+			self.lastTimeChecked = time.time()
+			return newAds
 
 class Ad(object):
 
@@ -68,6 +96,13 @@ class Ad(object):
 		adContent = html.find("div", {"class": "content"})
 		adLink = adContent.find("a")
 		self.url = adLink["href"]
+
+		# Pridobimo cas iz urlja
+		if "aclct" in self.url:
+			parsedUrl = urlparse.urlparse(self.url)
+			if "aclct" in urlparse.parse_qs(parsedUrl.query):
+				self.timeAdded = int(urlparse.parse_qs(parsedUrl.query)["aclct"][0])
+		
 		self.title = adLink.text.strip()
 
 		self.description = adContent.text.strip()
