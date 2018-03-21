@@ -5,10 +5,10 @@ import json
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
-	emailServer = jsonData["email_server"]
-	emailPort = jsonData["email_port"]
-	emailUsername = jsonData["email_username"]
-	emailPassword = jsonData["email_password"]
+	emailServer = jsonData["email"]["server"]
+	emailPort = jsonData["email"]["port"]
+	emailUsername = jsonData["email"]["username"]
+	emailPassword = jsonData["email"]["password"]
 
 class BolhaSearchThread(Thread):
 

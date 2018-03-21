@@ -1,6 +1,15 @@
 {
-	"email_server": "smtp.live.com",
-	"email_port": 587,
-	"email_username": "",
-	"email_password": ""
+	"email": {
+		"server": "smtp.live.com",
+		"port": 587,
+		"username": "",
+		"password": ""
+	},
+
+	"database": {
+		"host": "",
+		"username": "",
+		"password": "",
+		"database": ""
+	}
 }
