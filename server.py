@@ -25,6 +25,19 @@ def sendLoginPage():
 
 	return render_template('login.html')
 
+@app.route("/register", methods=["GET", "POST"])
+def sendRegisterPage():
+	email = request.form.get("email")
+	password = request.form.get("password")
+	repeatedPassword = request.form.get("repeat-password")
+	#ponovitveni paa? if pass == repeatedPass?
+
+	if email and password and repeatedPassword and password == repeatedPassword:
+		#preveri ce je na ta postni naslov ze kdo vpisan
+		pass
+	return render_template('register.html')
+
+
 @app.route("/add", methods=["POST"])
 def addSearch():
 	keywords = request.form.get("keywords")
