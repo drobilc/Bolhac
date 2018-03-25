@@ -7,17 +7,21 @@ from email.mime.text import MIMEText
 class Emailer(object):
 
 	def __init__(self, server, port, username, password):
-		self.server = smtplib.SMTP(server, port)
+		self.serverUrl = server
+		self.port = port
 		self.username = username
-		self.server.ehlo()
-		self.server.starttls()
-		self.server.login(username, password)
+		self.password = password
 
 	def generateEmailFromTemplate(self, templateFile, data):
 		path, filename = os.path.split(templateFile)
 		return jinja2.Environment(loader=jinja2.FileSystemLoader(path or './')).get_template(filename).render(data)
 
 	def sendEmail(self, recipient, subject, templateFile, data):
+		server = smtplib.SMTP(self.serverUrl, self.port)
+		server.ehlo()
+		server.starttls()
+		server.login(self.username, self.password)
+
 		html = self.generateEmailFromTemplate(templateFile, data)
 		text = html
 
@@ -32,4 +36,5 @@ class Emailer(object):
 		message.attach(plainTextMessage)
 		message.attach(htmlMessage)
 
-		self.server.sendmail(self.username, recipient, message.as_string())
+		server.sendmail(self.username, recipient, message.as_string())
+		server.quit()
