@@ -2,8 +2,9 @@
 Bolhač is your personal private detective for stolen goods. Name the item (bicycle for example) 
 that was stolen and some of its specifics (males, mountain,.. for example). Bolhač will then
 do the job that men in blue don't have time to do. It will search trough the internet
-and e-mail you all the ads, that were added since your item was stolen and that match your
-description of it. Let's make theft meaningless.
+and e-mail you all the ads, that were added since your item was stolen and that matches your
+description of it. 
+Let's make theft meaningless.
 
 ## Installation
 To install run following commands.
