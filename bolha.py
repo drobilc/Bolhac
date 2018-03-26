@@ -96,6 +96,8 @@ class Ad(object):
 		adContent = html.find("div", {"class": "content"})
 		adLink = adContent.find("a")
 		self.url = adLink["href"]
+		if "http://www.bolha.com" not in self.url:
+			self.url = "http://www.bolha.com" + self.url
 
 		# Pridobimo cas iz urlja
 		if "aclct" in self.url:

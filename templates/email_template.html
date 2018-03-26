@@ -5,7 +5,7 @@
 		<p>Na bolho je prišlo nekaj novih oglasov.</p>
 		<ul>
 			{% for ad in ads %}
-				<li>{{ ad.title }}</li>
+				<li><a href="{{ ad.url }}">{{ ad.title }}</a></li>
 			{% endfor %}
 		</ul>
 	</body>
