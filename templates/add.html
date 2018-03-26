@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="columns">
+	<div class="column">
+		<div class="box">
+			<h1 class="title">Add searcher</h1>
+			<p>Set search parameters and click create to create new Bolha searcher.</p><br/>
+			
+			<form action="add" method="POST" id="add-searcher-form">
+			<div class="field">
+				<label class="label">Keywords</label>
+				<div class="control">
+					<input class="input" type="text" placeholder="Enter search keywords" name="keywords"/>
+				</div>
+				<p class="help">Text you would enter in the search field on <a href="https://www.bolha.com">bolha.com</a>.</p>
+			</div>
+
+			<!-- Optional parameters -->
+			<div id="optional" class="field">
+				<label class="label" style="display: none" id="optional-parameters-label">Optional parameters</label>
+			</div>
+
+			<div class="field is-grouped is-grouped-right">
+				<div class="control">
+					<button type="button" class="button" id="add-parameter-button">Add parameter</button>
+				</div>
+				<div class="control">
+					<input type="submit" class="button is-primary" value="Create"/>
+				</div>
+			</div>
+
+			</form>
+
+		</div>
+	</div>
+</div>
+
+<script>
+	var form = document.getElementById("add-searcher-form");
+	var button = document.getElementById("add-parameter-button");
+
+	function removeOptionalElement() {
+		var toRemove = this.parentNode.parentNode;
+		toRemove.parentNode.removeChild(toRemove);
+	}
+
+	function newParameterElement(data) {
+		var element = document.createElement("div");
+		element.className = "field has-addons";
+
+		var control = document.createElement("p");
+		control.className = "control";
+		var span = document.createElement("span");
+		span.className = "select";
+		var select = document.createElement("select");
+		select.className = "select";
+
+		var options = ["Category", "Min price", "Max price", "Description"];
+		for (var i = 0; i < options.length; i++) {
+			var option = document.createElement("option");
+			option.innerHTML = options[i];
+			select.appendChild(option);
+		}
+		span.appendChild(select);
+		control.appendChild(span);
+
+		var controlText = document.createElement("p");
+		controlText.className = "control is-expanded";
+		var inputText = document.createElement("input");
+		inputText.type = "text";
+		inputText.placeholder = "Parameter value";
+		inputText.className = "input";
+		controlText.appendChild(inputText);
+
+		var buttonControl = document.createElement("p");
+		buttonControl.className = "control";
+		var removeButton = document.createElement("button");
+		removeButton.type = "button";
+		removeButton.className = "button";
+		removeButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+		buttonControl.appendChild(removeButton);
+
+		removeButton.onclick = removeOptionalElement;
+
+		element.appendChild(control);
+		element.appendChild(controlText);
+		element.appendChild(buttonControl);
+		return element;
+	}
+
+	button.onclick = function(e) {
+		var element = newParameterElement([]);
+		var optional = document.getElementById("optional");
+		optional.appendChild(element);
+	}
+</script>
+{% endblock %}

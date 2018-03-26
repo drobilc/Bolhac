@@ -1,65 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<title>Bolhač</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
-</head>
-<body>
-	<section class="section">
-		<div class="container">
-			<div class="columns">
-				<div class="column">
-					<div class="box">
-						<h1 class="title">Add searcher</h1>
-						<p>Set search parameters and click create to create new Bolha searcher.</p><br/>
-						
-						<form action="add" method="POST">
-						<div class="field">
-							<label class="label">Keywords</label>
-							<div class="control">
-								<input class="input" type="text" placeholder="Enter search keywords" name="keywords"/>
-							</div>
-							<p class="help">You can add multiple keywords separated by commas.</p>
-						</div>
-
-						<div class="field">
-							<label class="label">Categories</label>
-							<div class="control">
-								<input class="input" type="text" placeholder="Enter categories" name="categories"/>
-							</div>
-							<p class="help">Add categories separated by spaces.</p>
-						</div>
-
-						<div class="field is-grouped is-grouped-right">
-							<div class="control">
-								<input type="submit" class="button is-primary" value="Create"/>
-							</div>
-						</div>
-						</form>
-
-					</div>
-				</div>
-				<div class="column">
-					<div class="box">
-						<h1 class="title">Active searchers</h1>
-						{% if searchers == [] %}
-							<p>You have no searchers at the moment.</p>
-						{% else %}
-							<ul>
-							{% for searcher in searchers %}
-								<li>
-									<a href="{{ searcher.getUrl() }}" target="_blank">{{ searcher.q }}</a><br>
-								</li>
-							{% endfor %}
-							</ul>
-						{% endif %}						
-					</div>
-				</div>
-			</div>
+{% extends "base.html" %}
+{% block content %}
+{% if current_user.is_authenticated %}
+	<div class="columns">
+		<div class="column">
+			<h2>Welcome <strong>{{ current_user.email }}</strong></h2>
 		</div>
-	</section>
-</body>
-</html>
+		<div class="column">
+			<nav class="panel">
+				<div class="panel-heading">
+					Searchers
+					<a href="add" class="button is-small is-info" style="float: right;">
+						<span class="icon"><i class="fas fa-plus"></i></span>
+						<span>Add new</span>
+					</a>
+				</div>
+				
+				<p class="panel-tabs">
+					<a class="is-active">Bolha</a>
+				</p>
+
+				{% for searcher in searchers %}
+					<a class="panel-block" href="{{ searcher.getUrl() }}" target="_blank">
+						<span class="panel-icon"><i class="fas fa-search"></i></span>
+						{{ searcher.q }}
+					</a>
+				{% endfor %}
+
+			</nav>
+		</div>
+	</div>
+{% else %}
+	<h1>Log in to proceed.</h1>
+{% endif %}
+{% endblock %}

@@ -1,7 +1,9 @@
 from flask import Flask, request, render_template, redirect, url_for
+from flask_login import LoginManager, login_user, login_required, logout_user
 from threading import Thread, Event
 from bolha import BolhaSearch
 from customthread import BolhaSearchThread
+from user import User
 import MySQLdb
 import json
 
@@ -13,12 +15,27 @@ with open("config.json", "r") as configFile:
 	mysqlDatabase = jsonData["database"]["database"]
 
 app = Flask(__name__)
+app.secret_key = 'super secret key'
+loginManager = LoginManager()
+loginManager.init_app(app)
+
+@loginManager.user_loader
+def load_user(user_id):
+	return getUserData(user_id)
+
 stopFlag = Event()
 
 # Tabela v kateri hranimo vse iskalnike
-searchers = []
+searchers = [BolhaSearch(q="Gorsko kolo"), BolhaSearch(q="Usnjena jakna"), BolhaSearch(q="Fotoaparat Nikon")]
 
 database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
+
+def getUserData(user_id):
+	cursor = database.cursor()
+	cursor.execute("SELECT id, email FROM user WHERE id = %s", [int(user_id)])
+	result = cursor.fetchone()
+	if result:
+		return User(result[0], result[1])
 
 def getUserId(email=None, password=None):
 	cursor = database.cursor()
@@ -52,11 +69,12 @@ def sendLoginPage():
 		# Preveri ali uporabnik obstaja
 		userId = getUserId(email=email, password=password)
 		if userId:
-			# Uporabnik obstaja
-			return "USER EXISTS! ID: {}".format(userId)
+			user = getUserData(userId)
+			login_user(user)
+			return redirect(url_for('sendMainPage'))
 		else:
 			# Uporabnik ne obstaja
-			return "USER DOES NOT EXIST!"
+			return redirect(url_for('sendLoginPage'))
 
 	return render_template('login.html')
 
@@ -77,16 +95,25 @@ def sendRegisterPage():
 
 	return render_template('register.html')
 
+@app.route("/logout")
+@login_required
+def logout():
+	logout_user()
+	return redirect(url_for('sendMainPage'))
 
-@app.route("/add", methods=["POST"])
+@app.route("/add", methods=["GET", "POST"])
+@login_required
 def addSearch():
 	keywords = request.form.get("keywords")
-	category = request.form.get("category")
-	searcher = BolhaSearch(q=keywords)
-	searchers.append(searcher)
-	# Interval prenasanja strani je 10 sekund
-	searcher.interval = 60
-	return redirect(url_for('sendMainPage'))
+	if keywords:
+		searcher = BolhaSearch(q=keywords)
+		searchers.append(searcher)
+		# Interval prenasanja strani je 10 sekund
+		searcher.interval = 60
+		return redirect(url_for('sendMainPage'))
+	
+	return render_template('add.html')
+	
 
 if __name__ == '__main__':
 	# Ustvarimo nit v kateri bomo iskali po bolhi
