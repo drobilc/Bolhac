@@ -7,8 +7,9 @@ description of it.
 Let's make theft meaningless.
 
 ## Installation
-To install run following commands.
+To install run following commands. You need Python 3 to run it.
 ```bash
+sudo apt-get install python-pip python-dev libmysqlclient-dev
 git clone https://github.com/drobilc/Bolhac.git
 cd Bolhac
 pip install -r requirements.txt
