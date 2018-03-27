@@ -37,6 +37,7 @@ class BolhaSearch(object):
 			setattr(self, value, self.parameters[value])
 
 		self.foundAds = []
+		self.users = []
 
 	def search(self, page=1):
 		url = "http://www.bolha.com/iskanje"

@@ -32,13 +32,14 @@ class BolhaSearchThread(Thread):
 					# Prenesemo podatke
 					newAds = searcher.getNewAds()
 					if len(newAds) > 0:
-						self.emailer.sendEmail("", "Novi oglasi", "templates/email_template.html", {"ads": newAds})
+						for user in searcher.users:
+							self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
 						pass
 					searcher.lastChecked = time.time()
 			else:
 				# Prenesemo podatke in shranimo cas
 				newAds = searcher.getNewAds()
 				if len(newAds) > 0:
-					self.emailer.sendEmail("", "Novi oglasi", "templates/email_template.html", {"ads": newAds})
-					pass
+					for user in searcher.users:
+						self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
 				searcher.lastChecked = time.time()

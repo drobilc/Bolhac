@@ -75,6 +75,27 @@ def getUserSearchers(user):
 		searchers.append(BolhaSearch(url=result[0]))
 	return searchers
 
+def getUsersToNotify(searcher):
+	users = []
+	cursor = database.cursor()
+	cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
+	results = cursor.fetchall()
+	for result in results:
+		users.append(User(result[0], result[1]))
+	return users
+
+def getAllSearchers():
+	searchers = []
+	cursor = database.cursor()
+	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id;")
+	results = cursor.fetchall()
+	for result in results:
+		users = getUsersToNotify(result[0])
+		searcher = BolhaSearch(url=result[1])
+		searcher.users = users
+		searchers.append(searcher)
+	return searchers
+
 @app.route("/")
 def sendMainPage():
 	userSearchers = []
@@ -148,6 +169,9 @@ if __name__ == '__main__':
 	searchThread = BolhaSearchThread(stopFlag, 5, searchers)
 	searchThread.daemon = True
 	searchThread.start()
+
+	# Get all searchers from database
+	searchers = getAllSearchers()
 
 	# Pozenemo streznik
 	app.run(host="0.0.0.0", port=3000, debug=True)
