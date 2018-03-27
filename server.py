@@ -99,7 +99,7 @@ def getAllSearchers():
 @app.route("/")
 def sendMainPage():
 	userSearchers = []
-	if current_user.is_authenticated():
+	if current_user and current_user.is_authenticated:
 		userId = current_user.get_id()
 		userSearchers = getUserSearchers(userId)
 	return render_template('index.html', searchers=userSearchers)
