@@ -13,9 +13,10 @@ with open("config.json", "r") as configFile:
 	mysqlUsername = jsonData["database"]["username"]
 	mysqlPassword = jsonData["database"]["password"]
 	mysqlDatabase = jsonData["database"]["database"]
+	loginManagerSecretKey = jsonData["secret_key"]
 
 app = Flask(__name__)
-app.secret_key = 'super secret key'
+app.secret_key = loginManagerSecretKey
 loginManager = LoginManager()
 loginManager.init_app(app)
 
@@ -26,7 +27,7 @@ def load_user(user_id):
 stopFlag = Event()
 
 # Tabela v kateri hranimo vse iskalnike
-searchers = [BolhaSearch(url="http://www.bolha.com/iskanje?q=Torba")]
+searchers = []
 
 database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
 
@@ -93,6 +94,7 @@ def getAllSearchers():
 		users = getUsersToNotify(result[0])
 		searcher = BolhaSearch(url=result[1])
 		searcher.users = users
+		searcher.interval = 60
 		searchers.append(searcher)
 	return searchers
 
@@ -158,6 +160,7 @@ def addSearch():
 
 		searcherId = addSearchToDatabase(searcher)
 		addSearchToUser(current_user.get_id(), searcherId)
+		searcher.users.append(current_user)
 
 		return redirect(url_for('sendMainPage'))
 	
@@ -165,13 +168,13 @@ def addSearch():
 	
 
 if __name__ == '__main__':
+	# Get all searchers from database
+	searchers.extend(getAllSearchers())
+
 	# Ustvarimo nit v kateri bomo iskali po bolhi
 	searchThread = BolhaSearchThread(stopFlag, 5, searchers)
 	searchThread.daemon = True
 	searchThread.start()
-
-	# Get all searchers from database
-	searchers = getAllSearchers()
 
 	# Pozenemo streznik
 	app.run(host="0.0.0.0", port=3000, debug=True)

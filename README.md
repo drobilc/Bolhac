@@ -17,6 +17,7 @@ pip install -r requirements.txt
 
 ## Configuration
 To configure server you have to copy `example-config.json` to `config.json` and set the following parameters:
+* `secret_key` - key for secure storage of cookies
 * `email` - configuration for sending emails to users
   * `server` - email server (e.g. `smtp.live.com`)
   * `port` - port of email server (usually 587 for SMPT)

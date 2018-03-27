@@ -1,4 +1,6 @@
 {
+	"secret_key": "",
+
 	"email": {
 		"server": "smtp.live.com",
 		"port": 587,

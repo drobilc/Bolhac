@@ -29,9 +29,11 @@ class BolhaSearchThread(Thread):
 			if hasattr(searcher, "lastChecked"):
 				timeDelta = time.time() - searcher.lastChecked
 				if timeDelta > searcher.interval:
+					print("Searching for {}, interval: {}.".format(searcher.q, searcher.interval))
 					# Prenesemo podatke
 					newAds = searcher.getNewAds()
 					if len(newAds) > 0:
+						print("New ads were posted! Sending emails to {}".format(", ".join([user.email for user in searcher.users])))
 						for user in searcher.users:
 							self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
 						pass
@@ -39,7 +41,9 @@ class BolhaSearchThread(Thread):
 			else:
 				# Prenesemo podatke in shranimo cas
 				newAds = searcher.getNewAds()
+				print("Searching for {}, interval: {}.".format(searcher.q, searcher.interval))
 				if len(newAds) > 0:
+					print("New ads were posted! Sending emails to {}".format(", ".join([user.email for user in searcher.users])))
 					for user in searcher.users:
 						self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
 				searcher.lastChecked = time.time()
