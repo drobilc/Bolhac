@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from threading import Thread, Event
 from bolha import BolhaSearch
 from customthread import BolhaSearchThread
@@ -26,7 +26,7 @@ def load_user(user_id):
 stopFlag = Event()
 
 # Tabela v kateri hranimo vse iskalnike
-searchers = [BolhaSearch(q="Gorsko kolo"), BolhaSearch(q="Usnjena jakna"), BolhaSearch(q="Fotoaparat Nikon")]
+searchers = [BolhaSearch(url="http://www.bolha.com/iskanje?q=Torba")]
 
 database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
 
@@ -55,9 +55,33 @@ def addUser(email, password):
 	cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, password])
 	database.commit()
 
+def addSearchToDatabase(search):
+	cursor = database.cursor()
+	cursor.execute("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
+	database.commit()
+	return cursor.lastrowid
+
+def addSearchToUser(user, search):
+	cursor = database.cursor()
+	cursor.execute("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
+	database.commit()
+
+def getUserSearchers(user):
+	searchers = []
+	cursor = database.cursor()
+	cursor.execute("SELECT search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
+	results = cursor.fetchall()
+	for result in results:
+		searchers.append(BolhaSearch(url=result[0]))
+	return searchers
+
 @app.route("/")
 def sendMainPage():
-	return render_template('index.html', searchers=searchers)
+	userSearchers = []
+	if current_user.is_authenticated():
+		userId = current_user.get_id()
+		userSearchers = getUserSearchers(userId)
+	return render_template('index.html', searchers=userSearchers)
 
 @app.route("/login", methods=["GET", "POST"])
 def sendLoginPage():
@@ -110,6 +134,10 @@ def addSearch():
 		searchers.append(searcher)
 		# Interval prenasanja strani je 10 sekund
 		searcher.interval = 60
+
+		searcherId = addSearchToDatabase(searcher)
+		addSearchToUser(current_user.get_id(), searcherId)
+
 		return redirect(url_for('sendMainPage'))
 	
 	return render_template('add.html')

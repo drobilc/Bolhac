@@ -21,7 +21,16 @@ class BolhaSearch(object):
 			"unomitted": None
 		}
 
-		self.parameters.update(kwargs)
+		if "url" in kwargs:
+			parsedUrl = urlparse.urlparse(kwargs["url"])
+			queryParameters = urlparse.parse_qs(parsedUrl.query)
+			joinedParameters = {}
+			for param in queryParameters:
+				joinedParameters[param] = " ".join(queryParameters[param])
+			self.parameters.update(joinedParameters)
+		else:
+			self.parameters.update(kwargs)
+		
 		self.interval = 10
 
 		for value in self.parameters:
