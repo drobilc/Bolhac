@@ -1,14 +1,6 @@
 from threading import Thread, Event
-from emailer import Emailer
 import time
 import json
-
-with open("config.json", "r") as configFile:
-	jsonData = json.load(configFile)
-	emailServer = jsonData["email"]["server"]
-	emailPort = jsonData["email"]["port"]
-	emailUsername = jsonData["email"]["username"]
-	emailPassword = jsonData["email"]["password"]
 
 class BolhaSearchThread(Thread):
 
@@ -17,8 +9,6 @@ class BolhaSearchThread(Thread):
 		self.stopped = event
 		self.waitingTime = waitingTime
 		self.searchers = searchers
-
-		self.emailer = Emailer(emailServer, emailPort, emailUsername, emailPassword)
 
 	def run(self):
 		while not self.stopped.wait(self.waitingTime):
@@ -33,17 +23,14 @@ class BolhaSearchThread(Thread):
 					# Prenesemo podatke
 					newAds = searcher.getNewAds()
 					if len(newAds) > 0:
-						print("New ads were posted! Sending emails to {}".format(", ".join([user.email for user in searcher.users])))
 						for user in searcher.users:
-							self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
-						pass
+							user.addAds(newAds)
 					searcher.lastChecked = time.time()
 			else:
 				# Prenesemo podatke in shranimo cas
 				newAds = searcher.getNewAds()
 				print("Searching for {}, interval: {}.".format(searcher.q, searcher.interval))
 				if len(newAds) > 0:
-					print("New ads were posted! Sending emails to {}".format(", ".join([user.email for user in searcher.users])))
 					for user in searcher.users:
-						self.emailer.sendEmail(user.email, "Novi oglasi", "templates/email_template.html", {"ads": newAds})
+						user.addAds(newAds)
 				searcher.lastChecked = time.time()

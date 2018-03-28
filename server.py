@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from threading import Thread, Event
 from bolha import BolhaSearch
+from emailer import Emailer
 from customthread import BolhaSearchThread
 from user import User
 import MySQLdb
@@ -9,11 +10,19 @@ import json
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
+
+	# MySQL database configuration
 	mysqlHost = jsonData["database"]["host"]
 	mysqlUsername = jsonData["database"]["username"]
 	mysqlPassword = jsonData["database"]["password"]
 	mysqlDatabase = jsonData["database"]["database"]
 	loginManagerSecretKey = jsonData["secret_key"]
+
+	# Email server configuration
+	emailServer = jsonData["email"]["server"]
+	emailPort = jsonData["email"]["port"]
+	emailUsername = jsonData["email"]["username"]
+	emailPassword = jsonData["email"]["password"]
 
 app = Flask(__name__)
 app.secret_key = loginManagerSecretKey
@@ -26,6 +35,8 @@ def load_user(user_id):
 
 stopFlag = Event()
 
+emailer = Emailer(emailServer, emailPort, emailUsername, emailPassword)
+
 # Tabela v kateri hranimo vse iskalnike
 searchers = []
 
@@ -36,7 +47,7 @@ def getUserData(user_id):
 	cursor.execute("SELECT id, email FROM user WHERE id = %s", [int(user_id)])
 	result = cursor.fetchone()
 	if result:
-		return User(result[0], result[1])
+		return User(result[0], result[1], emailer)
 
 def getUserId(email=None, password=None):
 	cursor = database.cursor()
@@ -82,7 +93,7 @@ def getUsersToNotify(searcher):
 	cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
 	results = cursor.fetchall()
 	for result in results:
-		users.append(User(result[0], result[1]))
+		users.append(User(result[0], result[1], emailer))
 	return users
 
 def getAllSearchers():
