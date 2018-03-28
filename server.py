@@ -81,10 +81,12 @@ def addSearchToUser(user, search):
 def getUserSearchers(user):
 	searchers = []
 	cursor = database.cursor()
-	cursor.execute("SELECT search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
+	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
 	results = cursor.fetchall()
 	for result in results:
-		searchers.append(BolhaSearch(url=result[0]))
+		searcher = BolhaSearch(url=result[1])
+		searcher.id = result[0]
+		searchers.append(searcher)
 	return searchers
 
 def getUsersToNotify(searcher):
@@ -104,10 +106,30 @@ def getAllSearchers():
 	for result in results:
 		users = getUsersToNotify(result[0])
 		searcher = BolhaSearch(url=result[1])
+		searcher.id = result[0]
 		searcher.users = users
 		searcher.interval = 60
 		searchers.append(searcher)
 	return searchers
+
+def deleteSearcherFromDatabase(userId, searcher):
+	cursor = database.cursor()
+	cursor.execute("DELETE FROM has_search WHERE user_id = %s AND search_id = %s;", [userId, searcher])
+
+def deleteSearcherFromCurrentSearchers(searcherId):
+	for i, searcher in enumerate(searchers):
+		if searcher.id == searcherId:
+			del searchers[i]
+			return
+
+@app.route("/remove/<int:searcher>", methods=["GET"])
+@login_required
+def deleteSearcher(searcher):
+	if current_user and current_user.is_authenticated:
+		userId = current_user.get_id()
+		deleteSearcherFromDatabase(userId, searcher)
+		# Potrebno ga je se izbrisati iz trenutnih iskalnikov
+		deleteSearcherFromCurrentSearchers(searcher)
 
 @app.route("/")
 def sendMainPage():

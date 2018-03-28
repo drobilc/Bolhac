@@ -24,7 +24,7 @@ class User(object):
 	def addAds(self, newAds):
 		self.unsentAds.extend(newAds)
 		timeDelta = time.time() - self.lastAdded
-		if timeDelta > 30 * 60:
+		if timeDelta > 5 * 60:
 			self.sendData()
 			self.lastAdded = time.time()
 

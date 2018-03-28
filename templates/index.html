@@ -9,7 +9,7 @@
 			<nav class="panel">
 				<div class="panel-heading">
 					Searchers
-					<a href="add" class="button is-small is-info" style="float: right;">
+					<a href="add" class="button is-small is-info is-pulled-right">
 						<span class="icon"><i class="fas fa-plus"></i></span>
 						<span>Add new</span>
 					</a>
@@ -20,9 +20,9 @@
 				</p>
 
 				{% for searcher in searchers %}
-					<a class="panel-block" href="{{ searcher.getUrl() }}" target="_blank">
+					<a href="{{ searcher.getUrl() }}" target="_blank" class="panel-block">
 						<span class="panel-icon"><i class="fas fa-search"></i></span>
-						{{ searcher.q }}
+						<span>{{ searcher.q }}</span>
 					</a>
 				{% endfor %}
 
