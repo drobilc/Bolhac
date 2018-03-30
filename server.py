@@ -40,6 +40,9 @@ emailer = Emailer(emailServer, emailPort, emailUsername, emailPassword)
 # Tabela v kateri hranimo vse iskalnike
 searchers = []
 
+# Slovar v katerem hranimo podatke
+userObjects = {}
+
 database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
 
 def getUserData(user_id):
@@ -47,7 +50,12 @@ def getUserData(user_id):
 	cursor.execute("SELECT id, email FROM user WHERE id = %s", [int(user_id)])
 	result = cursor.fetchone()
 	if result:
-		return User(result[0], result[1], emailer)
+		if result[0] in userObjects:
+			return userObjects[result[0]]
+		else:
+			user = User(result[0], result[1], emailer)
+			userObjects[result[0]] = user
+			return user
 
 def getUserId(email=None, password=None):
 	cursor = database.cursor()
@@ -95,7 +103,12 @@ def getUsersToNotify(searcher):
 	cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
 	results = cursor.fetchall()
 	for result in results:
-		users.append(User(result[0], result[1], emailer))
+		if result[0] in userObjects:
+			user = userObjects[result[0]]
+		else:
+			user = User(result[0], result[1], emailer)
+			userObjects[result[0]] = user
+		users.append(user)
 	return users
 
 def getAllSearchers():
@@ -210,4 +223,4 @@ if __name__ == '__main__':
 	searchThread.start()
 
 	# Pozenemo streznik
-	app.run(host="0.0.0.0", port=3000, debug=True)
+	app.run(host="0.0.0.0", port=3000, debug=False)

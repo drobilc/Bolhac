@@ -23,11 +23,11 @@ class User(object):
 
 	def addAds(self, newAds):
 		self.unsentAds.extend(newAds)
+		
 		timeDelta = time.time() - self.lastAdded
-		if timeDelta > 5 * 60:
+		if timeDelta > 20 * 60:
 			self.sendData()
 			self.lastAdded = time.time()
-
 
 	def sendData(self):
 		self.emailer.sendEmail(self.email, "Novi oglasi", "templates/email_template.html", {"ads": self.unsentAds})

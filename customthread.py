@@ -23,6 +23,7 @@ class BolhaSearchThread(Thread):
 					# Prenesemo podatke
 					newAds = searcher.getNewAds()
 					if len(newAds) > 0:
+						print("{} new ads were found!".format(len(newAds)))
 						for user in searcher.users:
 							user.addAds(newAds)
 					searcher.lastChecked = time.time()
@@ -31,6 +32,7 @@ class BolhaSearchThread(Thread):
 				newAds = searcher.getNewAds()
 				print("Searching for {}, interval: {}.".format(searcher.q, searcher.interval))
 				if len(newAds) > 0:
+					print("{} new ads were found!".format(len(newAds)))
 					for user in searcher.users:
 						user.addAds(newAds)
 				searcher.lastChecked = time.time()
