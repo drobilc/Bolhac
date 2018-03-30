@@ -199,7 +199,12 @@ def logout():
 def addSearch():
 	keywords = request.form.get("keywords")
 	if keywords:
-		searcher = BolhaSearch(q=keywords)
+		keys = request.form.getlist("key[]")
+		values = request.form.getlist("value[]")
+		data = dict(zip(keys, values))
+		data["q"] = keywords
+
+		searcher = BolhaSearch(**data)
 		searchers.append(searcher)
 		# Interval prenasanja strani je 10 sekund
 		searcher.interval = 60
@@ -210,7 +215,8 @@ def addSearch():
 
 		return redirect(url_for('sendMainPage'))
 	
-	return render_template('add.html')
+	temp = BolhaSearch()
+	return render_template('add.html', parameters=json.dumps([key for key in temp.parameters]))
 	
 
 if __name__ == '__main__':

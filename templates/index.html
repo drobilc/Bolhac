@@ -4,7 +4,6 @@
 	<div class="columns">
 		<div class="column">
 			<h2>Last found ads</h2>
-			<p>{{ current_user.unsentAds }}</p>
 			{% for ad in current_user.unsentAds %}
 				<div class="ad">{{ ad.title }}</div>
 			{% endfor %}

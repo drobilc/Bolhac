@@ -39,6 +39,8 @@
 	var form = document.getElementById("add-searcher-form");
 	var button = document.getElementById("add-parameter-button");
 
+	var options = {{ parameters|safe }};
+
 	function removeOptionalElement() {
 		var toRemove = this.parentNode.parentNode;
 		toRemove.parentNode.removeChild(toRemove);
@@ -54,11 +56,12 @@
 		span.className = "select";
 		var select = document.createElement("select");
 		select.className = "select";
+		select.name = "key[]";
 
-		var options = ["Category", "Min price", "Max price", "Description"];
 		for (var i = 0; i < options.length; i++) {
 			var option = document.createElement("option");
 			option.innerHTML = options[i];
+			option.value = options[i];
 			select.appendChild(option);
 		}
 		span.appendChild(select);
@@ -68,6 +71,7 @@
 		controlText.className = "control is-expanded";
 		var inputText = document.createElement("input");
 		inputText.type = "text";
+		inputText.name = "value[]";
 		inputText.placeholder = "Parameter value";
 		inputText.className = "input";
 		controlText.appendChild(inputText);
