@@ -55,7 +55,7 @@ class BolhaSearch(object):
 
 		for ad in ads:
 			adId = ad.find("div", {"class": "miscellaneous"}).find("div", {"class": "saveAd"}).find("a")["data-id"]
-			ad = Ad(adId, ad)
+			ad = Ad(adId, ad, self.session)
 			allAds.append(ad)
 			self.foundAds.append(ad)
 			
@@ -94,14 +94,19 @@ class BolhaSearch(object):
 
 class Ad(object):
 
-	def __init__(self, id, adHtml=None):
+	def __init__(self, id, adHtml=None, session=None):
 		self.id = id
+		self.session = session
+		self.__dataDownloaded = False
 		if adHtml:
 			self.getDataFromHtml(adHtml)
 
 	def getDataFromHtml(self, html):
 		image = html.find("img")
-		self.image = image["src"]
+		if "data-original" in image.attrs:
+			self.image = image["data-original"]
+		else:
+			self.image = image["src"]
 
 		adContent = html.find("div", {"class": "content"})
 		adLink = adContent.find("a")
@@ -121,6 +126,15 @@ class Ad(object):
 
 		adPrice = html.find("div", {"class": "price"})
 		self.price = adPrice.text
+
+	def getMoreData(self):
+		reponse = self.session.get(self.url)
+		html = BeautifulSoup(reponse.text, "html.parser")
+
+		# Get seller info
+		sellerInfo = html.find("div", {"id": "sellerInfo"})
+
+		self.__dataDownloaded = True
 
 	def __cmp__(self, other):
 		return self.id == other.id
