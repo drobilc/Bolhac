@@ -8,18 +8,35 @@
 	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
 	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+	<script>
+		function toggleMenu(button) {
+			var menu = document.getElementById("main-menu");
+			if (menu.className.indexOf(" is-active") != -1) {
+				menu.className = menu.className.replace(" is-active", "");
+				button.className = button.className.replace(" is-active", "");
+			} else {
+				menu.className += " is-active";
+				button.className += " is-active";
+			}
+		}
+	</script>
 </head>
 <body>
 	<!-- Page header -->
-	<section class="hero">
+	<section class="hero" id="navigation">
 		<div class="hero-head">
 			<nav class="navbar">
 				<div class="container">
 					<div class="navbar-brand">
-						<a class="navbar-item"><h1 style="font-size: 1.4em; font-weight: bold;">Bolhač</h1></a>
+						<a class="navbar-item"><h1 style="font-weight: bold;">Bolhač</h1></a>
+						<div id="menu-button" class="navbar-burger" onclick="toggleMenu(this);">
+							<span></span>
+							<span></span>
+							<span></span>
+						</div>
 					</div>
 
-					<div id="navbarMenuHeroA" class="navbar-menu">
+					<div id="main-menu" class="navbar-menu">
 						<div class="navbar-end">
 							<a href="#" class="navbar-item is-active">Get started</a>
 							<a href="#" class="navbar-item is-active">Pricing</a>
@@ -49,6 +66,6 @@
 			</div>
 		</div>
 	</footer>
-	
+
 </body>
 </html>

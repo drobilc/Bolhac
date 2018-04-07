@@ -21,34 +21,6 @@
 	font-size: 1.4em;
 }
 
-#main-image {
-	max-width: 450px;
-}
-
-.navbar {
-	min-height: 5rem;
-}
-
-.navbar-menu {
-	font-size: 1.2rem;
-}
-
-.column-icon {
-	display: block;
-	font-size: 2em;
-	text-align: center;
-}
-
-.step {
-	text-align: center;
-}
-
-.more {
-	text-align: center;
-	font-size: 0.9em;
-	opacity: 0.8;
-}
-
 .arm {
 	animation-name: move_hand;
 	animation-duration: 5s;
@@ -84,5 +56,13 @@
 	to {
 		-webkit-transform: rotate(-1deg);
 		transform: rotate(-1deg);
+	}
+}
+
+@media screen and (max-width: 768px) {
+	#detective {
+		max-width: 250px;
+		display: block;
+		margin: 0 auto;
 	}
 }
