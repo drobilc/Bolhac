@@ -4,12 +4,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Bolhač - prijava</title>
+	<title>Bolhač - login</title>
 	
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
-	<!-- Bulma Version 0.6.0 -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.0/css/bulma.min.css" integrity="sha256-HEtF7HLJZSC3Le1HcsWbz1hDYFPZCqDhZa9QsCgVUdw=" crossorigin="anonymous" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
 
 	<style type="text/css">
 		html,body {
@@ -18,7 +16,7 @@
 			font-weight: 300;
 		}
 		.hero.is-success {
-			background: #F2F6FA;
+			background-color: #ffffff;
 		}
 		.hero .nav, .hero.is-success .nav {
 			-webkit-box-shadow: none;
@@ -64,23 +62,23 @@
 						<form action="login" method="POST">
 							<div class="field">
 								<div class="control">
-									<input class="input is-large" type="email" placeholder="Vaš e-poštni naslov" autofocus="" name="email">
+									<input class="input is-large" type="email" placeholder="Your email address" autofocus="" name="email">
 								</div>
 							</div>
 
 							<div class="field">
 								<div class="control">
-									<input class="input is-large" type="password" placeholder="Vaše geslo" name="password">
+									<input class="input is-large" type="password" placeholder="Your password" name="password">
 								</div>
 							</div>
 
 							<div class="field">
 								<label class="checkbox">
-									<input type="checkbox" name="remember-me"> Zapomni si me
+									<input type="checkbox" name="remember-me"> Remember me
 								</label>
 							</div>
 
-							<button class="button is-block is-info is-large is-fullwidth">Prijava</button>
+							<button class="button is-block is-info is-large is-fullwidth">Login</button>
 						</form>
 
 					</div>

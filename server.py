@@ -154,6 +154,14 @@ def sendMainPage():
 		userSearchers = getUserSearchers(userId)
 	return render_template('index.html', searchers=userSearchers)
 
+@app.route("/get_started")
+def sendGetStartedPage():
+	return render_template('get_started.html')
+
+@app.route("/pricing")
+def sendPricingPage():
+	return render_template('pricing.html')
+
 @app.route("/login", methods=["GET", "POST"])
 def sendLoginPage():
 	email = request.form.get("email")

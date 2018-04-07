@@ -28,7 +28,7 @@
 			<nav class="navbar">
 				<div class="container">
 					<div class="navbar-brand">
-						<a class="navbar-item"><h1 style="font-weight: bold;">Bolhač</h1></a>
+						<a class="navbar-item" href="/"><h1 style="font-weight: bold;">Bolhač</h1></a>
 						<div id="menu-button" class="navbar-burger" onclick="toggleMenu(this);">
 							<span></span>
 							<span></span>
@@ -38,11 +38,11 @@
 
 					<div id="main-menu" class="navbar-menu">
 						<div class="navbar-end">
-							<a href="#" class="navbar-item is-active">Get started</a>
-							<a href="#" class="navbar-item is-active">Pricing</a>
 							{% if current_user.is_authenticated %}
-								<a href="login" class="navbar-item">Logout</a>
+								<a href="logout" class="navbar-item">Logout</a>
 							{% else %}
+								<a href="get_started" class="navbar-item is-active">Get started</a>
+								<a href="pricing" class="navbar-item is-active">Pricing</a>
 								<a href="login" class="navbar-item">Login</a>
 							{% endif %}
 						</div>
@@ -53,7 +53,7 @@
 	</section>
 
 	<section class="section">
-		<div class="container">
+		<div class="container" id="content">
 			{% block content %}
 			{% endblock %}
 		</div>
