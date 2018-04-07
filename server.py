@@ -87,15 +87,17 @@ def addSearchToUser(user, search):
 	database.commit()
 
 def getUserSearchers(user):
-	searchers = []
+	userSearchers = []
 	cursor = database.cursor()
 	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
 	results = cursor.fetchall()
 	for result in results:
 		searcher = BolhaSearch(url=result[1])
 		searcher.id = result[0]
-		searchers.append(searcher)
-	return searchers
+		if searcher in searchers:
+			searcher = searchers[searchers.index(searcher)]
+		userSearchers.append(searcher)
+	return userSearchers
 
 def getUsersToNotify(searcher):
 	users = []
@@ -229,4 +231,4 @@ if __name__ == '__main__':
 	searchThread.start()
 
 	# Pozenemo streznik
-	app.run(host="0.0.0.0", port=3000, debug=False)
+	app.run(host="0.0.0.0", port=3000, debug=True)

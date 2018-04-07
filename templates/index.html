@@ -3,12 +3,32 @@
 {% if current_user.is_authenticated %}
 	<div class="columns">
 		<div class="column">
-			<h2>Last found ads</h2>
-			{% for ad in current_user.unsentAds %}
-				<div class="ad">{{ ad.title }}</div>
-			{% endfor %}
+
+		{% for searcher in searchers %}
+		<div class="card" style="margin-bottom: 1em;">
+			
+			<header class="card-header">
+				<p class="card-header-title">Searcher for {{ searcher.q }}</p>
+			</header>
+			
+			<div class="card-content">
+				<div class="content">
+					<div class="columns is-multiline">
+					{% for ad in searcher.foundAds[0:10] %}
+						<div class="column">
+							<a href="{{ ad.url }}">
+								<img src="{{ ad.image }}" style="width: 128px; max-width: 128px; height: 128px; object-fit: cover;">
+							</a>
+						</div>
+					{% endfor %}
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="column">
+		{% endfor %}
+
+		</div>
+		<div class="column is-one-third">
 			<nav class="panel">
 				<div class="panel-heading">
 					Searchers

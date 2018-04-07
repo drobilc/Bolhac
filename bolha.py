@@ -57,7 +57,8 @@ class BolhaSearch(object):
 			adId = ad.find("div", {"class": "miscellaneous"}).find("div", {"class": "saveAd"}).find("a")["data-id"]
 			ad = Ad(adId, ad, self.session)
 			allAds.append(ad)
-			self.foundAds.append(ad)
+			if ad not in self.foundAds:
+				self.foundAds.append(ad)
 			
 		return allAds
 
@@ -91,6 +92,12 @@ class BolhaSearch(object):
 
 			self.lastTimeChecked = time.time()
 			return newAds
+
+	def __cmp__(self, other):
+		return (hasattr(self, "id") and hasattr(other, "id") and self.id == other.id) or (self.getUrl() == other.getUrl())
+
+	def __eq__(self, other):
+		return (hasattr(self, "id") and hasattr(other, "id") and self.id == other.id) or (self.getUrl() == other.getUrl())
 
 class Ad(object):
 
@@ -137,6 +144,9 @@ class Ad(object):
 		self.__dataDownloaded = True
 
 	def __cmp__(self, other):
+		return self.id == other.id
+
+	def __eq__(self, other):
 		return self.id == other.id
 
 	def __repr__(self):
