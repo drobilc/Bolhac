@@ -7,6 +7,7 @@ from customthread import BolhaSearchThread
 from user import User
 import MySQLdb
 import json
+import hashlib
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
@@ -57,10 +58,13 @@ def getUserData(user_id):
 			userObjects[result[0]] = user
 			return user
 
+def getMd5Hash(text):
+	return hashlib.md5(text.encode('utf-8')).hexdigest()
+
 def getUserId(email=None, password=None):
 	cursor = database.cursor()
 	if email and password:
-		cursor.execute("SELECT id FROM user WHERE email = %s AND password = %s", [email, password])
+		cursor.execute("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
 	elif email:
 		cursor.execute("SELECT id FROM user WHERE email = %s", [email])
 	else:
@@ -72,7 +76,7 @@ def getUserId(email=None, password=None):
 
 def addUser(email, password):
 	cursor = database.cursor()
-	cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, password])
+	cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
 	database.commit()
 
 def addSearchToDatabase(search):
@@ -194,7 +198,7 @@ def sendRegisterPage():
 		if not userId:
 			# Naslova se ni v bazi
 			addUser(email=email, password=password)
-			return "REGISTRATION COMPLETE!"
+			return redirect(url_for('sendLoginPage'))
 
 	return render_template('register.html')
 
