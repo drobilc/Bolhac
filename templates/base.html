@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
 	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
 	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 </head>
 <body>
 	<!-- Page header -->
@@ -20,7 +21,8 @@
 
 					<div id="navbarMenuHeroA" class="navbar-menu">
 						<div class="navbar-end">
-							<a href="#" class="navbar-item is-active">Home</a>
+							<a href="#" class="navbar-item is-active">Get started</a>
+							<a href="#" class="navbar-item is-active">Pricing</a>
 							{% if current_user.is_authenticated %}
 								<a href="login" class="navbar-item">Logout</a>
 							{% else %}
@@ -39,5 +41,14 @@
 			{% endblock %}
 		</div>
 	</section>
+
+	<footer class="footer">
+		<div class="container">
+			<div class="content has-text-centered">
+				<p>You can find more about Bolhač on <a href="https://github.com/drobilc/Bolhac">Github</a>.</p>
+			</div>
+		</div>
+	</footer>
+	
 </body>
 </html>

@@ -1,0 +1,88 @@
+#navigation {
+	border-bottom: 1px solid #ebebeb;
+}
+
+#headline {
+	font-size: 5em;
+	font-weight: bold;
+	line-height: 1.1;
+	margin-bottom: 0.3em;
+}
+
+#main-text {
+	color: #5b5e6d;
+	font-size: 1.4em;
+	text-align: justify;
+	margin-bottom: 1em;
+}
+
+.text {
+	color: #5b5e6d;
+	font-size: 1.4em;
+}
+
+#main-image {
+	max-width: 450px;
+}
+
+.navbar {
+	min-height: 5rem;
+}
+
+.navbar-menu {
+	font-size: 1.2rem;
+}
+
+.column-icon {
+	display: block;
+	font-size: 2em;
+	text-align: center;
+}
+
+.step {
+	text-align: center;
+}
+
+.more {
+	text-align: center;
+	font-size: 0.9em;
+	opacity: 0.8;
+}
+
+.arm {
+	animation-name: move_hand;
+	animation-duration: 5s;
+	animation-iteration-count: infinite;
+	transform-origin: 0 80%;
+	animation-delay: 2s;
+}
+
+@-webkit-keyframes move_hand {
+	from {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	50% {
+		-webkit-transform: rotate(3deg);
+		transform: rotate(3deg);
+	}
+	to {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+}
+
+@-webkit-keyframes move_flashlight {
+	from {
+		-webkit-transform: rotate(-1deg);
+		transform: rotate(-1deg);
+	}
+	50% {
+		-webkit-transform: rotate(1deg);
+		transform: rotate(1deg);
+	}
+	to {
+		-webkit-transform: rotate(-1deg);
+		transform: rotate(-1deg);
+	}
+}
