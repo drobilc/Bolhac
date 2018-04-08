@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Bolhač Administrator</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+
+	<!-- Page header -->
+	<section class="hero" id="navigation">
+		<div class="hero-head">
+			<nav class="navbar">
+				<div class="container">
+					<div class="navbar-brand">
+						<a class="navbar-item" href="/"><h1 style="font-weight: bold;">Bolhač Admin</h1></a>
+					</div>
+				</div>
+			</nav>
+		</div>
+	</section>
+
+	<div class="container">
+		<div class="columns">
+			<div class="column is-3">
+				<aside class="menu">
+				<p class="menu-label">General</p>
+
+				<ul class="menu-list">
+				<li><a href="{{ url_for('sendAdminDashboard') }}" class="is-active">Dashboard</a></li>
+				</ul>
+
+				<p class="menu-label">Plugins</p>
+
+				<ul class="menu-list">
+					{% for plugin in plugins %}
+						<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}">{{ plugin.__class__.__name__ }}</a></li>
+					{% endfor %}
+				</ul>
+
+				</aside>
+			</div>
+
+			<div class="column is-9">
+				{% block content %}
+				{% endblock %}
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

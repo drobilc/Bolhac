@@ -1,0 +1,12 @@
+{% extends "admin_base.html" %}
+{% block content %}
+	<div class="columns">
+		
+		<div class="column">
+			<h1 class="my-heading">Plugin <strong>{{ plugin.__class__.__name__ }}</strong></h1>
+			<br/>
+			{{ pluginView|safe }}
+		</div>
+
+	</div>
+{% endblock %}

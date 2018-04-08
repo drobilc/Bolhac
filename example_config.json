@@ -13,5 +13,7 @@
 		"username": "",
 		"password": "",
 		"database": ""
-	}
+	},
+
+	"plugins": []
 }

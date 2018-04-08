@@ -28,6 +28,7 @@ To configure server you have to copy `example-config.json` to `config.json` and 
   * `username` - user for your database (please do not use root)
   * `password` - password for your user account
   * `database` - name of the database you want to use (`bolhac`)
+* `plugins` - array of plugin options (default is `[]`)
 
 ## Running
 You can run the server by typing

@@ -5,9 +5,11 @@ from bolha import BolhaSearch
 from emailer import Emailer
 from customthread import BolhaSearchThread
 from user import User
-import MySQLdb
+import MySQLdb, MySQLdb.cursors
 import json
 import hashlib
+import glob, os, importlib, inspect
+from options import Options
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
@@ -24,6 +26,78 @@ with open("config.json", "r") as configFile:
 	emailPort = jsonData["email"]["port"]
 	emailUsername = jsonData["email"]["username"]
 	emailPassword = jsonData["email"]["password"]
+
+# Get dashboard and plugin options
+print("Reading options from file config.json")
+options = Options("config.json")
+
+# Enabled plugins vs Available plugins
+availablePlugins = glob.glob("plugins/**/*.py")
+
+# Connect to database
+pluginDatabase = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase, cursorclass=MySQLdb.cursors.DictCursor)
+
+def getPluginName(pluginPath):
+	pluginName = os.path.basename(pluginPath)
+	if ".py" in pluginName:
+		pluginName = pluginName.replace(".py", "")
+	return pluginName
+
+def getMainClass(plugin):
+	allClasses = inspect.getmembers(plugin, inspect.isclass)
+	if len(allClasses) > 0:
+		mainClass = None
+		for className in allClasses:
+			if className[0] != 'Plugin':
+				mainClass = className[1]
+				break;
+		return mainClass
+
+def importPlugin(pluginPath):
+	# Get plugin name and print debug info
+	pluginName = getPluginName(pluginPath)
+	print(" - Importing plugin {}".format(pluginName))
+
+	# Import plugin from path
+	importedPlugin = importlib.import_module("plugins.{}.{}".format(pluginName, pluginName))
+
+	# Get main class from plugin
+	mainClass = getMainClass(importedPlugin)
+	if mainClass:
+		# Get plugin options from options
+		pluginOptions = options.pluginOptions(mainClass.__name__)
+		# Create object from class
+		pluginObject = mainClass(pluginDatabase, pluginOptions)
+		# Return object
+		return pluginObject
+
+enabledPlugins = {}
+
+# Observer class observes changes and calls hooks
+class Observer(object):
+	
+	def __init__(self, plugins):
+		self.plugins = plugins
+
+	def getHook(self, plugin, hookName):
+		hook = getattr(plugin, hookName, None)
+		if hook and callable(hook):
+			return hook
+		return None
+
+	def callHook(self, hookName, data=None):
+		for plugin in self.plugins:
+			hook = self.getHook(self.plugins[plugin], hookName)
+			if hook:
+				hook(data)
+
+# Import plugins
+print("Importing plugins")
+for pluginPath in availablePlugins:
+	pluginName = getPluginName(pluginPath)
+	# Create plugin object
+	importedPlugin = importPlugin(pluginPath)
+	enabledPlugins[pluginName] = importedPlugin
 
 app = Flask(__name__)
 app.secret_key = loginManagerSecretKey
@@ -231,6 +305,18 @@ def addSearch():
 	
 	temp = BolhaSearch()
 	return render_template('add.html', parameters=json.dumps([key for key in temp.parameters]))
+
+@app.route("/admin")
+def sendAdminDashboard():
+	return render_template('admin_dashboard.html', plugins=[enabledPlugins[p] for p in enabledPlugins])
+
+@app.route("/admin/plugin/<pluginName>", methods=["GET", "POST"])
+def sendPluginPage(pluginName):
+	if pluginName in enabledPlugins:
+		plugin = enabledPlugins[pluginName]
+		html = plugin.renderView(request.values)
+		return render_template('admin_plugin.html', plugin=plugin, pluginView=html, plugins=[enabledPlugins[p] for p in enabledPlugins])
+	return redirect(url_for('sendAdminDashboard'))
 	
 
 if __name__ == '__main__':

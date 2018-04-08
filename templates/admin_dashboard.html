@@ -1,0 +1,14 @@
+{% extends "admin_base.html" %}
+{% block content %}
+	<div class="columns">
+	
+	{% for plugin in plugins %}
+		<div class="column">
+			<div class="box">
+				{{ plugin.renderCard()|safe }}
+			</div>
+		</div>
+	{% endfor %}
+
+	</div>
+{% endblock %}
