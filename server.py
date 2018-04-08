@@ -43,31 +43,33 @@ def getPluginName(pluginPath):
 		pluginName = pluginName.replace(".py", "")
 	return pluginName
 
-def getMainClass(plugin):
+def getMainClass(plugin, pluginName):
 	allClasses = inspect.getmembers(plugin, inspect.isclass)
 	if len(allClasses) > 0:
 		mainClass = None
 		for className in allClasses:
-			if className[0] != 'Plugin':
+			if className[0] == pluginName:
 				mainClass = className[1]
-				break;
-		return mainClass
+				return mainClass
 
 def importPlugin(pluginPath):
 	# Get plugin name and print debug info
 	pluginName = getPluginName(pluginPath)
+	absolutePath, filename = os.path.split(pluginPath)
+
 	print(" - Importing plugin {}".format(pluginName))
 
 	# Import plugin from path
 	importedPlugin = importlib.import_module("plugins.{}.{}".format(pluginName, pluginName))
 
 	# Get main class from plugin
-	mainClass = getMainClass(importedPlugin)
+	mainClass = getMainClass(importedPlugin, pluginName)
 	if mainClass:
 		# Get plugin options from options
 		pluginOptions = options.pluginOptions(mainClass.__name__)
 		# Create object from class
 		pluginObject = mainClass(pluginDatabase, pluginOptions)
+		pluginObject.absolutePath = absolutePath
 		# Return object
 		return pluginObject
 
