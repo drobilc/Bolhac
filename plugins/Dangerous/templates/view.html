@@ -1,0 +1,10 @@
+{% block content %}
+{% endblock %}
+
+<h2 class="my-heading">Executing SQL</h2>
+<form action="" method="POST">
+	<textarea name="sql_query" class="textarea" style="font-family: "Courier New", Courier, monospace;" placeholder="Enter your SQL query here">{% if value %}{{ value }}{% endif %}</textarea>
+	<div class="buttons is-right" style="margin-top: 6px">
+		<input type="submit" class="button is-danger" value="Execute">
+	</div>
+</form>

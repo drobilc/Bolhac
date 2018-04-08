@@ -1,0 +1,24 @@
+{% extends "view.html" %}
+{% block content %}
+<h2 class="my-heading">Query result</h2>
+
+<table class="table is-fullwidth is-hoverable">
+	{% if rows|length <= 0 %}
+    <tr><td>No results found</td></tr>
+	{% else %}
+		<tr>
+			{% for columnName in rows[0] %}
+				<th>{{ columnName }}</th>
+			{% endfor %}
+		</tr>
+		{% for row in rows %}
+			<tr>
+				{% for column in row %}
+					<td>{{ row[column] }}</td>
+				{% endfor %}
+			</tr>
+		{% endfor %}
+	{% endif %}
+</table>
+
+{% endblock %}

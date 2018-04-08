@@ -1,9 +1,9 @@
 {% extends "admin_base.html" %}
 {% block content %}
-	<div class="columns">
+	<div class="columns is-multiline">
 	
 	{% for plugin in plugins %}
-		<div class="column">
+		<div class="column is-one-third">
 			<div class="box">
 				{{ plugin.renderCard()|safe }}
 			</div>

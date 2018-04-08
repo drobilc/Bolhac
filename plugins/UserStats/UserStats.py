@@ -28,16 +28,5 @@ class UserStats(Plugin):
 		return numberOfSearchers
 
 	def renderCard(self):
-		return """
-			<h1 style="margin-bottom: 8px; font-weight: bold;">Stats</h1>
-			<table class="table is-fullwidth is-hoverable">
-				<tr>
-					<td>Number of users</td>
-					<td><strong>{}</strong></td>
-				</tr>
-				<tr>
-					<td>Number of searchers</td>
-					<td><strong>{}</strong></td>
-				</tr>
-			</table>
-		""".format(self.getNumberOfUsers(), self.getNumberOfSearchers())
+		template = self.getTemplate("templates/card.html")
+		return template.render(numberOfUsers=self.getNumberOfUsers(), numberOfSearchers=self.getNumberOfSearchers())

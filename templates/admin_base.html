@@ -22,33 +22,35 @@
 		</div>
 	</section>
 
-	<div class="container">
-		<div class="columns">
-			<div class="column is-3">
-				<aside class="menu">
-				<p class="menu-label">General</p>
+	<section class="section">
+		<div class="container">
+			<div class="columns">
+				<div class="column is-3">
+					<aside class="menu">
+					<p class="menu-label">General</p>
 
-				<ul class="menu-list">
-				<li><a href="{{ url_for('sendAdminDashboard') }}" class="is-active">Dashboard</a></li>
-				</ul>
+					<ul class="menu-list">
+					<li><a href="{{ url_for('sendAdminDashboard') }}" class="is-active">Dashboard</a></li>
+					</ul>
 
-				<p class="menu-label">Plugins</p>
+					<p class="menu-label">Plugins</p>
 
-				<ul class="menu-list">
-					{% for plugin in plugins %}
-						<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}">{{ plugin.__class__.__name__ }}</a></li>
-					{% endfor %}
-				</ul>
+					<ul class="menu-list">
+						{% for plugin in plugins %}
+							<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}">{{ plugin.__class__.__name__ }}</a></li>
+						{% endfor %}
+					</ul>
 
-				</aside>
-			</div>
+					</aside>
+				</div>
 
-			<div class="column is-9">
-				{% block content %}
-				{% endblock %}
+				<div class="column is-9">
+					{% block content %}
+					{% endblock %}
+				</div>
 			</div>
 		</div>
-	</div>
+	</section>
 
 </body>
 </html>
