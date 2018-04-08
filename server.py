@@ -36,6 +36,7 @@ availablePlugins = glob.glob("plugins/**/*.py")
 
 # Connect to database
 pluginDatabase = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase, cursorclass=MySQLdb.cursors.DictCursor)
+pluginDatabase.autocommit(True)
 
 def getPluginName(pluginPath):
 	pluginName = os.path.basename(pluginPath)
@@ -122,6 +123,7 @@ searchers = []
 userObjects = {}
 
 database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
+database.autocommit(True)
 
 def getUserData(user_id):
 	cursor = database.cursor()
