@@ -38,6 +38,10 @@
 
 					<div id="main-menu" class="navbar-menu">
 						<div class="navbar-end">
+							{% if current_user.is_admin() %}
+								<a href="admin" class="navbar-item">Admin dashboard</a>
+							{% endif %}
+
 							{% if current_user.is_authenticated %}
 								<a href="logout" class="navbar-item">Logout</a>
 							{% else %}

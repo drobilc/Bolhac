@@ -5,6 +5,7 @@ CREATE TABLE user (
 	id INT PRIMARY KEY AUTO_INCREMENT,
 	email VARCHAR(255) NOT NULL,
 	password VARCHAR(32) NOT NULL,
+	status INT NOT NULL DEFAULT 1,
 	CONSTRAINT user_email_unique UNIQUE (email)
 );
 

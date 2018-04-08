@@ -1,9 +1,11 @@
 import time
+from flask.ext.login import AnonymousUserMixin
 
-class User(object):
+class User(AnonymousUserMixin):
 
 	def __init__(self, id, email, emailer):
 		self.id = id
+		self.status = 1
 		self.email = email
 		self.emailer = emailer
 		self.lastAdded = time.time()
@@ -21,6 +23,9 @@ class User(object):
 	def get_id(self):
 		return u'{}'.format(self.id)
 
+	def is_admin(self):
+		return self.status == 2
+
 	def addAds(self, newAds):
 		self.unsentAds.extend(newAds)
 		
@@ -32,3 +37,11 @@ class User(object):
 	def sendData(self):
 		self.emailer.sendEmail(self.email, "Novi oglasi", "templates/email_template.html", {"ads": self.unsentAds})
 		self.unsentAds = []
+
+class Anonymous(AnonymousUserMixin):
+	
+	def __init__(self):
+		self.username = 'Guest'
+
+	def is_admin(self):
+		return False

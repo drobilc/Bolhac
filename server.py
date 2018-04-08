@@ -1,10 +1,10 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from threading import Thread, Event
 from bolha import BolhaSearch
 from emailer import Emailer
 from customthread import BolhaSearchThread
-from user import User
+from user import User, Anonymous
 import MySQLdb, MySQLdb.cursors
 import json
 import hashlib
@@ -103,6 +103,7 @@ app = Flask(__name__)
 app.secret_key = loginManagerSecretKey
 loginManager = LoginManager()
 loginManager.init_app(app)
+loginManager.anonymous_user = Anonymous
 
 @loginManager.user_loader
 def load_user(user_id):
@@ -122,13 +123,14 @@ database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassw
 
 def getUserData(user_id):
 	cursor = database.cursor()
-	cursor.execute("SELECT id, email FROM user WHERE id = %s", [int(user_id)])
+	cursor.execute("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
 	result = cursor.fetchone()
 	if result:
 		if result[0] in userObjects:
 			return userObjects[result[0]]
 		else:
 			user = User(result[0], result[1], emailer)
+			user.status = result[2]
 			userObjects[result[0]] = user
 			return user
 
@@ -307,11 +309,19 @@ def addSearch():
 	return render_template('add.html', parameters=json.dumps([key for key in temp.parameters]))
 
 @app.route("/admin")
+@login_required
 def sendAdminDashboard():
+	if not current_user or not current_user.is_admin():
+		return abort(404)
 	return render_template('admin_dashboard.html', plugins=[enabledPlugins[p] for p in enabledPlugins])
+	
 
 @app.route("/admin/plugin/<pluginName>", methods=["GET", "POST"])
+@login_required
 def sendPluginPage(pluginName):
+	if not current_user or not current_user.is_admin():
+		return abort(404)
+
 	if pluginName in enabledPlugins:
 		plugin = enabledPlugins[pluginName]
 		html = plugin.renderView(request.values)
