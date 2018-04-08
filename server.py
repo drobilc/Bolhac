@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, abort
+from flask import Flask, request, render_template, redirect, url_for, abort, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from threading import Thread, Event
 from bolha import BolhaSearch
@@ -329,7 +329,14 @@ def sendPluginPage(pluginName):
 		html = plugin.renderView(request.values)
 		return render_template('admin_plugin.html', plugin=plugin, pluginView=html, plugins=[enabledPlugins[p] for p in enabledPlugins])
 	return redirect(url_for('sendAdminDashboard'))
-	
+
+@app.route("/admin/plugin/<pluginName>/data", methods=["GET", "POST"])
+def sentPluginData(pluginName):
+	if pluginName in enabledPlugins:
+		plugin = enabledPlugins[pluginName]
+		data = plugin.returnJsonData(request.values)
+		return jsonify(data)
+	return jsonify({})
 
 if __name__ == '__main__':
 	# Get all searchers from database

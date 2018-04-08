@@ -3,11 +3,14 @@
 	<div class="columns is-multiline">
 	
 	{% for plugin in plugins %}
-		<div class="column is-one-third">
-			<div class="box">
-				{{ plugin.renderCard()|safe }}
+		{% set html = plugin.renderCard() %}
+		{% if html is not none %}
+			<div class="column is-one-third">
+				<div class="box">
+					{{ html|safe }}
+				</div>
 			</div>
-		</div>
+		{% endif %}
 	{% endfor %}
 
 	</div>

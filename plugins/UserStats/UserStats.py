@@ -30,3 +30,10 @@ class UserStats(Plugin):
 	def renderCard(self):
 		template = self.getTemplate("templates/card.html")
 		return template.render(numberOfUsers=self.getNumberOfUsers(), numberOfSearchers=self.getNumberOfSearchers())
+
+	def returnJsonData(self, request):
+		data = {
+			"numberOfUsers": self.getNumberOfUsers(),
+			"numberOfSearchers": self.getNumberOfSearchers()
+		}
+		return data

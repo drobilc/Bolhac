@@ -2,10 +2,31 @@
 <table class="table is-fullwidth is-hoverable">
 	<tr>
 		<td>Number of users</td>
-		<td><strong>{{ numberOfUsers }}</strong></td>
+		<td><strong id="numberOfUsers">{{ numberOfUsers }}</strong></td>
 	</tr>
 	<tr>
 		<td>Number of searchers</td>
-		<td><strong>{{ numberOfSearchers }}</strong></td>
+		<td><strong id="numberOfSearchers">{{ numberOfSearchers }}</strong></td>
 	</tr>
 </table>
+<script>
+	function updateData() {
+		var numberOfUsersElement = document.getElementById("numberOfUsers");
+		var numberOfSearchersElement = document.getElementById("numberOfSearchers");
+		
+		var request = new XMLHttpRequest();
+		request.open('GET', "/admin/plugin/UserStats/data", true);
+		request.responseType = 'json';
+		request.onload = function() {
+			var status = request.status;
+			if (status === 200) {
+				var numberOfUsers = request.response.numberOfUsers;
+				var numberOfSearchers = request.response.numberOfSearchers;
+				numberOfUsersElement.innerHTML = numberOfUsers;
+				numberOfSearchersElement.innerHTML = numberOfSearchers;
+			}
+		};
+		request.send();
+	}
+	var userStatsInterval = setInterval(updateData, 30 * 1000);
+</script>

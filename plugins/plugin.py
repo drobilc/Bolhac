@@ -16,6 +16,9 @@ class Plugin(object):
 		template = jinja2.Environment(loader=jinja2.FileSystemLoader(path or './')).get_template(filename)
 		return template
 
+	def returnJsonData(self, request):
+		return {}
+
 	def renderView(self, data):
 		return None
 
