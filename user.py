@@ -1,5 +1,5 @@
 import time
-from flask.ext.login import AnonymousUserMixin
+from flask_login import AnonymousUserMixin
 
 class User(AnonymousUserMixin):
 
