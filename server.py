@@ -10,6 +10,7 @@ import json
 import hashlib
 import glob, os, importlib, inspect
 from options import Options
+from database_helper import DatabaseHelper
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
@@ -35,8 +36,7 @@ options = Options("config.json")
 availablePlugins = glob.glob("plugins/**/*.py")
 
 # Connect to database
-pluginDatabase = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase, cursorclass=MySQLdb.cursors.DictCursor)
-pluginDatabase.autocommit(True)
+database = DatabaseHelper(mysqlHost, mysqlUsername, mysqlPassword, mysqlDatabase)
 
 def getPluginName(pluginPath):
 	pluginName = os.path.basename(pluginPath)
@@ -69,7 +69,7 @@ def importPlugin(pluginPath):
 		# Get plugin options from options
 		pluginOptions = options.pluginOptions(mainClass.__name__)
 		# Create object from class
-		pluginObject = mainClass(pluginDatabase, pluginOptions)
+		pluginObject = mainClass(database, pluginOptions)
 		pluginObject.absolutePath = absolutePath
 		# Return object
 		return pluginObject
@@ -122,62 +122,66 @@ searchers = []
 # Slovar v katerem hranimo podatke
 userObjects = {}
 
-database = MySQLdb.connect(host=mysqlHost, user=mysqlUsername, passwd=mysqlPassword, db=mysqlDatabase)
-database.autocommit(True)
-
 def getUserData(user_id):
-	cursor = database.cursor()
-	cursor.execute("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
+	cursor = database.query("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
+	#cursor = database.cursor()
+	#cursor.execute("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
 	result = cursor.fetchone()
 	if result:
-		if result[0] in userObjects:
-			return userObjects[result[0]]
+		if result["id"] in userObjects:
+			return userObjects[result["id"]]
 		else:
-			user = User(result[0], result[1], emailer)
-			user.status = result[2]
-			userObjects[result[0]] = user
+			user = User(result["id"], result["email"], emailer)
+			user.status = result["status"]
+			userObjects[result["id"]] = user
 			return user
 
 def getMd5Hash(text):
 	return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 def getUserId(email=None, password=None):
-	cursor = database.cursor()
+	#cursor = database.cursor()
 	if email and password:
-		cursor.execute("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
+		#cursor.execute("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
+		cursor = database.query("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
 	elif email:
-		cursor.execute("SELECT id FROM user WHERE email = %s", [email])
+		cursor = database.query("SELECT id FROM user WHERE email = %s", [email])
+		#cursor.execute("SELECT id FROM user WHERE email = %s", [email])
 	else:
 		return None
 	result = cursor.fetchone()
 	if result:
-		return result[0]
+		return result["id"]
 	return None
 
 def addUser(email, password):
-	cursor = database.cursor()
-	cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
+	cursor = database.query("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
+	#cursor = database.cursor()
+	#cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
 	database.commit()
 
 def addSearchToDatabase(search):
-	cursor = database.cursor()
-	cursor.execute("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
+	#cursor = database.cursor()
+	#cursor.execute("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
+	cursor = database.query("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
 	database.commit()
 	return cursor.lastrowid
 
 def addSearchToUser(user, search):
-	cursor = database.cursor()
-	cursor.execute("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
+	cursor = database.query("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
+	#cursor = database.cursor()
+	#cursor.execute("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
 	database.commit()
 
 def getUserSearchers(user):
 	userSearchers = []
-	cursor = database.cursor()
-	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
+	cursor = database.query("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
+	#cursor = database.cursor()
+	#cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
 	results = cursor.fetchall()
 	for result in results:
-		searcher = BolhaSearch(url=result[1])
-		searcher.id = result[0]
+		searcher = BolhaSearch(url=result["url"])
+		searcher.id = result["id"]
 		if searcher in searchers:
 			searcher = searchers[searchers.index(searcher)]
 		userSearchers.append(searcher)
@@ -185,15 +189,16 @@ def getUserSearchers(user):
 
 def getUsersToNotify(searcher):
 	users = []
-	cursor = database.cursor()
-	cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
+	#cursor = database.cursor()
+	#cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
+	cursor = database.query("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
 	results = cursor.fetchall()
 	for result in results:
-		if result[0] in userObjects:
-			user = userObjects[result[0]]
+		if result["user_id"] in userObjects:
+			user = userObjects[result["user_id"]]
 		else:
-			user = User(result[0], result[1], emailer)
-			userObjects[result[0]] = user
+			user = User(result["user_id"], result["email"], emailer)
+			userObjects[result["user_id"]] = user
 		users.append(user)
 	return users
 
@@ -203,9 +208,9 @@ def getAllSearchers():
 	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id;")
 	results = cursor.fetchall()
 	for result in results:
-		users = getUsersToNotify(result[0])
-		searcher = BolhaSearch(url=result[1])
-		searcher.id = result[0]
+		users = getUsersToNotify(result["id"])
+		searcher = BolhaSearch(url=result["url"])
+		searcher.id = result["id"]
 		searcher.users = users
 		searcher.interval = 60
 		searchers.append(searcher)
