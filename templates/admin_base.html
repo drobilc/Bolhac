@@ -30,14 +30,23 @@
 					<p class="menu-label">General</p>
 
 					<ul class="menu-list">
-					<li><a href="{{ url_for('sendAdminDashboard') }}" class="is-active">Dashboard</a></li>
+						{% if plugin is not defined %}
+							<li><a href="{{ url_for('sendAdminDashboard') }}" class="is-active">Dashboard</a></li>
+						{% else %}
+							<li><a href="{{ url_for('sendAdminDashboard') }}">Dashboard</a></li>
+						{% endif %}
 					</ul>
 
 					<p class="menu-label">Plugins</p>
 
 					<ul class="menu-list">
+						{% set pluginName = plugin.__class__.__name__ or 'Plugin' %}
 						{% for plugin in plugins %}
-							<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}">{{ plugin.__class__.__name__ }}</a></li>
+							{% if plugin.__class__.__name__ == pluginName %}
+								<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}" class="is-active">{{ plugin.__class__.__name__ }}</a></li>
+							{% else %}
+								<li><a href="{{url_for('sendPluginPage', pluginName=plugin.__class__.__name__)}}">{{ plugin.__class__.__name__ }}</a></li>
+							{% endif %}
 						{% endfor %}
 					</ul>
 
