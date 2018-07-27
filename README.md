@@ -23,11 +23,6 @@ To configure server you have to copy `example-config.json` to `config.json` and 
   * `port` - port of email server (usually 587 for SMPT)
   * `username` - email from which you want to send emails to users
   * `password` - password for your email account
-* `database` - configuration for MySQL database
-  * `host` - database host, if you are running it locally use `localhost`
-  * `username` - user for your database (please do not use root)
-  * `password` - password for your user account
-  * `database` - name of the database you want to use (`bolhac`)
 * `plugins` - array of plugin options (default is `[]`)
 
 ## Running

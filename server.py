@@ -4,13 +4,15 @@ from threading import Thread, Event
 from bolha import BolhaSearch
 from emailer import Emailer
 from customthread import BolhaSearchThread
-from user import User, Anonymous
 import MySQLdb, MySQLdb.cursors
 import json
 import hashlib
 import glob, os, importlib, inspect
 from options import Options
-from database_helper import DatabaseHelper
+from flask_sqlalchemy import SQLAlchemy
+import datetime
+
+from database.models import Base, User, Anonymous, Search
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
@@ -36,8 +38,8 @@ options = Options("config.json")
 availablePlugins = glob.glob("plugins/**/*.py")
 
 # Connect to database
-database = DatabaseHelper(mysqlHost, mysqlUsername, mysqlPassword, mysqlDatabase)
-
+#database = DatabaseHelper(mysqlHost, mysqlUsername, mysqlPassword, mysqlDatabase)
+"""
 def getPluginName(pluginPath):
 	pluginName = os.path.basename(pluginPath)
 	if ".py" in pluginName:
@@ -101,16 +103,19 @@ for pluginPath in availablePlugins:
 	# Create plugin object
 	importedPlugin = importPlugin(pluginPath)
 	enabledPlugins[pluginName] = importedPlugin
-
+"""
 app = Flask(__name__)
 app.secret_key = loginManagerSecretKey
 loginManager = LoginManager()
 loginManager.init_app(app)
 loginManager.anonymous_user = Anonymous
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+database = SQLAlchemy(app)
+
 @loginManager.user_loader
 def load_user(user_id):
-	return getUserData(user_id)
+	return database.session.query(User).filter_by(id=user_id).first()
 
 stopFlag = Event()
 
@@ -122,125 +127,22 @@ searchers = []
 # Slovar v katerem hranimo podatke
 userObjects = {}
 
-def getUserData(user_id):
-	cursor = database.query("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
-	#cursor = database.cursor()
-	#cursor.execute("SELECT id, email, status FROM user WHERE id = %s", [int(user_id)])
-	result = cursor.fetchone()
-	if result:
-		if result["id"] in userObjects:
-			return userObjects[result["id"]]
-		else:
-			user = User(result["id"], result["email"], emailer)
-			user.status = result["status"]
-			userObjects[result["id"]] = user
-			return user
-
-def getMd5Hash(text):
-	return hashlib.md5(text.encode('utf-8')).hexdigest()
-
-def getUserId(email=None, password=None):
-	#cursor = database.cursor()
-	if email and password:
-		#cursor.execute("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
-		cursor = database.query("SELECT id FROM user WHERE email = %s AND password = %s", [email, getMd5Hash(password)])
-	elif email:
-		cursor = database.query("SELECT id FROM user WHERE email = %s", [email])
-		#cursor.execute("SELECT id FROM user WHERE email = %s", [email])
-	else:
-		return None
-	result = cursor.fetchone()
-	if result:
-		return result["id"]
-	return None
-
-def addUser(email, password):
-	cursor = database.query("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
-	#cursor = database.cursor()
-	#cursor.execute("INSERT INTO user (email, password) VALUES (%s, %s)", [email, getMd5Hash(password)])
-	database.commit()
-
-def addSearchToDatabase(search):
-	#cursor = database.cursor()
-	#cursor.execute("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
-	cursor = database.query("INSERT INTO search (url) VALUES (%s)", [search.getUrl()])
-	database.commit()
-	return cursor.lastrowid
-
-def addSearchToUser(user, search):
-	cursor = database.query("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
-	#cursor = database.cursor()
-	#cursor.execute("INSERT INTO has_search (user_id, search_id) VALUES (%s, %s)", [user, search])
-	database.commit()
-
-def getUserSearchers(user):
-	userSearchers = []
-	cursor = database.query("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
-	#cursor = database.cursor()
-	#cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id WHERE has_search.user_id = %s;", [user])
-	results = cursor.fetchall()
-	for result in results:
-		searcher = BolhaSearch(url=result["url"])
-		searcher.id = result["id"]
-		if searcher in searchers:
-			searcher = searchers[searchers.index(searcher)]
-		userSearchers.append(searcher)
-	return userSearchers
-
-def getUsersToNotify(searcher):
-	users = []
-	#cursor = database.cursor()
-	#cursor.execute("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
-	cursor = database.query("SELECT has_search.user_id, user.email FROM has_search INNER JOIN user ON has_search.user_id = user.id WHERE has_search.search_id = %s;", [searcher])
-	results = cursor.fetchall()
-	for result in results:
-		if result["user_id"] in userObjects:
-			user = userObjects[result["user_id"]]
-		else:
-			user = User(result["user_id"], result["email"], emailer)
-			userObjects[result["user_id"]] = user
-		users.append(user)
-	return users
-
-def getAllSearchers():
-	searchers = []
-	cursor = database.cursor()
-	cursor.execute("SELECT search.id, search.url FROM has_search INNER JOIN search ON has_search.search_id = search.id;")
-	results = cursor.fetchall()
-	for result in results:
-		users = getUsersToNotify(result["id"])
-		searcher = BolhaSearch(url=result["url"])
-		searcher.id = result["id"]
-		searcher.users = users
-		searcher.interval = 60
-		searchers.append(searcher)
-	return searchers
-
-def deleteSearcherFromDatabase(userId, searcher):
-	cursor = database.cursor()
-	cursor.execute("DELETE FROM has_search WHERE user_id = %s AND search_id = %s;", [userId, searcher])
-
-def deleteSearcherFromCurrentSearchers(searcherId):
-	for i, searcher in enumerate(searchers):
-		if searcher.id == searcherId:
-			del searchers[i]
-			return
-
 @app.route("/remove/<int:searcher>", methods=["GET"])
 @login_required
 def deleteSearcher(searcher):
 	if current_user and current_user.is_authenticated:
-		userId = current_user.get_id()
-		deleteSearcherFromDatabase(userId, searcher)
-		# Potrebno ga je se izbrisati iz trenutnih iskalnikov
-		deleteSearcherFromCurrentSearchers(searcher)
+		search = database.session.query(Search).filter_by(id=searcher).first()
+		if search:
+			print("Deleting {}".format(search))
+			database.session.delete(search)
+			database.session.commit()
+
 
 @app.route("/")
 def sendMainPage():
 	userSearchers = []
 	if current_user and current_user.is_authenticated:
-		userId = current_user.get_id()
-		userSearchers = getUserSearchers(userId)
+		userSearchers = [BolhaSearch(url=s.url) for s in current_user.searchers]
 	return render_template('index.html', searchers=userSearchers)
 
 @app.route("/get_started")
@@ -259,13 +161,11 @@ def sendLoginPage():
 
 	if email and password:
 		# Preveri ali uporabnik obstaja
-		userId = getUserId(email=email, password=password)
-		if userId:
-			user = getUserData(userId)
+		user = database.session.query(User).filter_by(email=email, password=password).first()
+		if user:
 			login_user(user)
 			return redirect(url_for('sendMainPage'))
 		else:
-			# Uporabnik ne obstaja
 			return redirect(url_for('sendLoginPage'))
 
 	return render_template('login.html')
@@ -275,14 +175,15 @@ def sendRegisterPage():
 	email = request.form.get("email")
 	password = request.form.get("password")
 	repeatedPassword = request.form.get("repeat-password")
-	#ponovitveni paa? if pass == repeatedPass?
 
 	if email and password and repeatedPassword and password == repeatedPassword:
 		#preveri ce je na ta postni naslov ze kdo vpisan
-		userId = getUserId(email=email)
-		if not userId:
+		user = database.session.query(User).filter_by(email=email).first()
+		if not user:
 			# Naslova se ni v bazi
-			addUser(email=email, password=password)
+			user = User(email=email, password=password, account_type=0)
+			database.session.add(user)
+			database.session.commit()
 			return redirect(url_for('sendLoginPage'))
 
 	return render_template('register.html')
@@ -308,15 +209,17 @@ def addSearch():
 		# Interval prenasanja strani je 10 sekund
 		searcher.interval = 60
 
-		searcherId = addSearchToDatabase(searcher)
-		addSearchToUser(current_user.get_id(), searcherId)
-		searcher.users.append(current_user)
+		search = Search(url=searcher.getUrl(), date_added=datetime.datetime.now(), last_search=datetime.datetime.now())
+		current_user.searchers.append(search)
+		database.session.add(current_user)
+		database.session.commit()
 
 		return redirect(url_for('sendMainPage'))
 	
 	temp = BolhaSearch()
 	return render_template('add.html', parameters=json.dumps([key for key in temp.parameters]))
 
+"""
 @app.route("/admin")
 @login_required
 def sendAdminDashboard():
@@ -344,8 +247,20 @@ def sentPluginData(pluginName):
 		data = plugin.returnJsonData(request.values)
 		return jsonify(data)
 	return jsonify({})
+"""
+
+def getAllSearchers():
+	searchers = database.session.query(Search).all()
+	realSearchers = []
+	for searcher in searchers:
+		realSearchers.append(BolhaSearch(url=searcher.url))
+	return realSearchers
 
 if __name__ == '__main__':
+	# Create database
+	Base.metadata.create_all(bind=database.engine)
+	database.session.commit()
+
 	# Get all searchers from database
 	searchers.extend(getAllSearchers())
 

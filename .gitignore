@@ -102,3 +102,4 @@ ENV/
 
 # Custom
 config.json
+*.db

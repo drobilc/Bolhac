@@ -8,12 +8,5 @@
 		"password": ""
 	},
 
-	"database": {
-		"host": "",
-		"username": "",
-		"password": "",
-		"database": ""
-	},
-
 	"plugins": []
 }
