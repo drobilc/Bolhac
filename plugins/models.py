@@ -46,3 +46,15 @@ class Search(Base):
 
 	def __repr__(self):
 		return "<Search(url='{}')>".format(self.url)
+
+class Options(Base):
+
+	__tablename__ = 'options'
+	
+	id = Column(Integer, primary_key=True)
+	plugin_name = Column(String)
+	key = Column(String)
+	value = Column(String)
+
+	def __repr__(self):
+		return "<Option(plugin_name='{}', key='{}', value='{}')>".format(self.plugin_name, self.key, self.value)

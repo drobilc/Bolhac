@@ -19,7 +19,7 @@ def getMainClass(plugin, pluginName):
 				mainClass = className[1]
 				return mainClass
 
-def importPlugin(pluginPath):
+def importPlugin(pluginPath, database, options):
 	# Get plugin name and print debug info
 	pluginName = getPluginName(pluginPath)
 	absolutePath, filename = os.path.split(pluginPath)
@@ -31,8 +31,7 @@ def importPlugin(pluginPath):
 	mainClass = getMainClass(importedPlugin, pluginName)
 	if mainClass:
 		# Create object from class
-		database = []
-		pluginObject = mainClass(database)
+		pluginObject = mainClass(database, options)
 		pluginObject.absolutePath = absolutePath
 		# Return object
 		return pluginObject

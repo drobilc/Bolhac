@@ -8,10 +8,8 @@ import MySQLdb, MySQLdb.cursors
 import json
 from flask_sqlalchemy import SQLAlchemy
 import datetime
-
 import plugin_manager
-
-from database.models import Base, User, Anonymous, Search
+from plugins.models import Base, User, Anonymous, Search, Options
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
@@ -42,7 +40,14 @@ print("Importing plugins")
 for pluginPath in availablePlugins:
 	pluginName = plugin_manager.getPluginName(pluginPath)
 	print(" - Importing plugin {}".format(pluginName))
-	importedPlugin = plugin_manager.importPlugin(pluginPath)
+
+	# Read plugin options from database
+	pluginOptions = database.session.query(Options).filter_by(plugin_name=pluginName).all()
+	options = {}
+	for option in pluginOptions:
+		options[option.key] = option.value
+
+	importedPlugin = plugin_manager.importPlugin(pluginPath, database, options)
 	enabledPlugins[pluginName] = importedPlugin
 
 @loginManager.user_loader
@@ -50,14 +55,10 @@ def load_user(user_id):
 	return database.session.query(User).filter_by(id=user_id).first()
 
 stopFlag = Event()
-
 emailer = Emailer(emailServer, emailPort, emailUsername, emailPassword)
 
-# Tabela v kateri hranimo vse iskalnike
+# Dictionary of current running searchers
 searchers = []
-
-# Slovar v katerem hranimo podatke
-userObjects = {}
 
 @app.route("/remove/<int:searcher>", methods=["GET"])
 @login_required
@@ -65,10 +66,8 @@ def deleteSearcher(searcher):
 	if current_user and current_user.is_authenticated:
 		search = database.session.query(Search).filter_by(id=searcher).first()
 		if search:
-			print("Deleting {}".format(search))
 			database.session.delete(search)
 			database.session.commit()
-
 
 @app.route("/")
 def sendMainPage():
