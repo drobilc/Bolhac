@@ -1,14 +1,13 @@
 from flask import Flask, request, render_template, redirect, url_for, abort, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from threading import Thread, Event
+import json, datetime
+
+import plugin_manager
 from bolha import BolhaSearch
 from emailer import Emailer
 from customthread import BolhaSearchThread
-import MySQLdb, MySQLdb.cursors
-import json
-from flask_sqlalchemy import SQLAlchemy
-import datetime
-import plugin_manager
 from plugins.models import Base, User, Anonymous, Search, Options
 
 with open("config.json", "r") as configFile:
@@ -31,6 +30,10 @@ loginManager.anonymous_user = Anonymous
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 database = SQLAlchemy(app)
+
+# Create database
+Base.metadata.create_all(bind=database.engine)
+database.session.commit()
 
 # FOR PLUGIN SYSTEM
 enabledPlugins = {}
@@ -58,7 +61,7 @@ stopFlag = Event()
 emailer = Emailer(emailServer, emailPort, emailUsername, emailPassword)
 
 # Dictionary of current running searchers
-searchers = []
+searchers = {}
 
 @app.route("/remove/<int:searcher>", methods=["GET"])
 @login_required
@@ -128,22 +131,35 @@ def logout():
 @app.route("/add", methods=["GET", "POST"])
 @login_required
 def addSearch():
+	# First, get keywords from user
 	keywords = request.form.get("keywords")
 	if keywords:
+		# Get keys and values that were apended manually with js
 		keys = request.form.getlist("key[]")
 		values = request.form.getlist("value[]")
+
+		# Create data dictionary
 		data = dict(zip(keys, values))
 		data["q"] = keywords
 
+		# Add some aditional data
 		searcher = BolhaSearch(**data)
-		searchers.append(searcher)
-		# Interval prenasanja strani je 10 sekund
+		
+		# Now get url from searcher
+		searcher.url = searcher.getUrl()
+		searcher.date_added = datetime.datetime.now()
+		searcher.last_search = datetime.datetime.now()
 		searcher.interval = 60
-
-		search = Search(url=searcher.getUrl(), date_added=datetime.datetime.now(), last_search=datetime.datetime.now())
-		current_user.searchers.append(search)
+		
+		# Add this searcher to database
+		current_user.searchers.append(searcher)
 		database.session.add(current_user)
 		database.session.commit()
+
+		print(searcher.id)
+		"""
+		# Now add it to the searcher dictionary
+		searchers[searcher.id] = searcher"""
 
 		return redirect(url_for('sendMainPage'))
 	
@@ -178,20 +194,11 @@ def sendPluginData(pluginName):
 		return jsonify(data)
 	return jsonify({})
 
-def getAllSearchers():
-	searchers = database.session.query(Search).all()
-	realSearchers = []
-	for searcher in searchers:
-		realSearchers.append(BolhaSearch(url=searcher.url))
-	return realSearchers
-
 if __name__ == '__main__':
-	# Create database
-	Base.metadata.create_all(bind=database.engine)
-	database.session.commit()
-
 	# Get all searchers from database
-	searchers.extend(getAllSearchers())
+	allSearchers = database.session.query(Search).all()
+	for searcher in allSearchers:
+		searchers[searcher.id] = searcher
 
 	# Ustvarimo nit v kateri bomo iskali po bolhi
 	searchThread = BolhaSearchThread(stopFlag, 5, searchers)

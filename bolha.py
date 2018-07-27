@@ -2,8 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import urllib.parse as urlparse
 import time
+from plugins.models import Search, Ad
+import datetime
 
-class BolhaSearch(object):
+class BolhaSearch(Search):
 
 	def __init__(self, **kwargs):
 		self.session = requests.Session()
@@ -39,6 +41,49 @@ class BolhaSearch(object):
 		self.foundAds = []
 		self.users = []
 
+	def parseAd(self, adId, html):
+		# Get ad image
+		adImage = html.find("img")
+		if "data-original" in adImage.attrs:
+			imageUrl = adImage["data-original"]
+		else:
+			imageUrl = adImage["src"]
+
+		# Get ad content (url, title, description)
+		adContent = html.find("div", {"class": "content"})
+		adLink = adContent.find("a")
+
+		# Get url from ad content
+		url = adLink["href"]
+		if "http://www.bolha.com" not in url:
+			url = "http://www.bolha.com" + url
+
+		# Get title and description
+		title = adLink.text.strip()
+		description = adContent.text.strip()
+
+		adPrice = html.find("div", {"class": "price"})
+		price = adPrice.text
+
+		timeAdded = 0
+		# Time of ad
+		if "aclct" in url:
+			parsedUrl = urlparse.urlparse(url)
+			if "aclct" in urlparse.parse_qs(parsedUrl.query):
+				timeAdded = int(urlparse.parse_qs(parsedUrl.query)["aclct"][0])
+
+		ad = Ad(
+			#id = adId,
+			title = title,
+			description = description,
+			url = url,
+			image_url = imageUrl,
+			price = price,
+			ad_added = timeAdded,
+			time_added = datetime.datetime.now()
+		)
+		return ad		
+
 	def search(self, page=1):
 		url = "http://www.bolha.com/iskanje"
 
@@ -55,11 +100,11 @@ class BolhaSearch(object):
 
 		for ad in ads:
 			adId = ad.find("div", {"class": "miscellaneous"}).find("div", {"class": "saveAd"}).find("a")["data-id"]
-			ad = Ad(adId, ad, self.session)
-			allAds.append(ad)
-			if ad not in self.foundAds:
-				self.foundAds.append(ad)
-			
+			#ad = BolhaAd(adId, ad, self.session)
+			allAds.append(self.parseAd(adId, ad))
+			#if ad not in self.foundAds:
+			#	self.foundAds.append(ad)
+		#print(allAds)
 		return allAds
 
 	def getUrl(self):
@@ -99,7 +144,7 @@ class BolhaSearch(object):
 	def __eq__(self, other):
 		return (hasattr(self, "id") and hasattr(other, "id") and self.id == other.id) or (self.getUrl() == other.getUrl())
 
-class Ad(object):
+class BolhaAd(object):
 
 	def __init__(self, id, adHtml=None, session=None):
 		self.id = id

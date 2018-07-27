@@ -15,7 +15,8 @@ class BolhaSearchThread(Thread):
 			self.getData()
 
 	def getData(self):
-		for searcher in self.searchers:
+		pass
+		"""for searcher in self.searchers:
 			if hasattr(searcher, "lastChecked"):
 				timeDelta = time.time() - searcher.lastChecked
 				if timeDelta > searcher.interval:
@@ -24,6 +25,7 @@ class BolhaSearchThread(Thread):
 					newAds = searcher.getNewAds()
 					if len(newAds) > 0:
 						print("{} new ads were found!".format(len(newAds)))
+						#searcher.ads.extend(newAds)
 						for user in searcher.users:
 							user.addAds(newAds)
 					searcher.lastChecked = time.time()
@@ -36,3 +38,4 @@ class BolhaSearchThread(Thread):
 					for user in searcher.users:
 						user.addAds(newAds)
 				searcher.lastChecked = time.time()
+		"""
