@@ -6,22 +6,17 @@ from emailer import Emailer
 from customthread import BolhaSearchThread
 import MySQLdb, MySQLdb.cursors
 import json
-import hashlib
-import glob, os, importlib, inspect
-from options import Options
 from flask_sqlalchemy import SQLAlchemy
 import datetime
+
+import plugin_manager
 
 from database.models import Base, User, Anonymous, Search
 
 with open("config.json", "r") as configFile:
 	jsonData = json.load(configFile)
 
-	# MySQL database configuration
-	mysqlHost = jsonData["database"]["host"]
-	mysqlUsername = jsonData["database"]["username"]
-	mysqlPassword = jsonData["database"]["password"]
-	mysqlDatabase = jsonData["database"]["database"]
+	# Secret key for login manager
 	loginManagerSecretKey = jsonData["secret_key"]
 
 	# Email server configuration
@@ -30,80 +25,6 @@ with open("config.json", "r") as configFile:
 	emailUsername = jsonData["email"]["username"]
 	emailPassword = jsonData["email"]["password"]
 
-# Get dashboard and plugin options
-print("Reading options from file config.json")
-options = Options("config.json")
-
-# Enabled plugins vs Available plugins
-availablePlugins = glob.glob("plugins/**/*.py")
-
-# Connect to database
-#database = DatabaseHelper(mysqlHost, mysqlUsername, mysqlPassword, mysqlDatabase)
-"""
-def getPluginName(pluginPath):
-	pluginName = os.path.basename(pluginPath)
-	if ".py" in pluginName:
-		pluginName = pluginName.replace(".py", "")
-	return pluginName
-
-def getMainClass(plugin, pluginName):
-	allClasses = inspect.getmembers(plugin, inspect.isclass)
-	if len(allClasses) > 0:
-		mainClass = None
-		for className in allClasses:
-			if className[0] == pluginName:
-				mainClass = className[1]
-				return mainClass
-
-def importPlugin(pluginPath):
-	# Get plugin name and print debug info
-	pluginName = getPluginName(pluginPath)
-	absolutePath, filename = os.path.split(pluginPath)
-
-	print(" - Importing plugin {}".format(pluginName))
-
-	# Import plugin from path
-	importedPlugin = importlib.import_module("plugins.{}.{}".format(pluginName, pluginName))
-
-	# Get main class from plugin
-	mainClass = getMainClass(importedPlugin, pluginName)
-	if mainClass:
-		# Get plugin options from options
-		pluginOptions = options.pluginOptions(mainClass.__name__)
-		# Create object from class
-		pluginObject = mainClass(database, pluginOptions)
-		pluginObject.absolutePath = absolutePath
-		# Return object
-		return pluginObject
-
-enabledPlugins = {}
-
-# Observer class observes changes and calls hooks
-class Observer(object):
-	
-	def __init__(self, plugins):
-		self.plugins = plugins
-
-	def getHook(self, plugin, hookName):
-		hook = getattr(plugin, hookName, None)
-		if hook and callable(hook):
-			return hook
-		return None
-
-	def callHook(self, hookName, data=None):
-		for plugin in self.plugins:
-			hook = self.getHook(self.plugins[plugin], hookName)
-			if hook:
-				hook(data)
-
-# Import plugins
-print("Importing plugins")
-for pluginPath in availablePlugins:
-	pluginName = getPluginName(pluginPath)
-	# Create plugin object
-	importedPlugin = importPlugin(pluginPath)
-	enabledPlugins[pluginName] = importedPlugin
-"""
 app = Flask(__name__)
 app.secret_key = loginManagerSecretKey
 loginManager = LoginManager()
@@ -112,6 +33,17 @@ loginManager.anonymous_user = Anonymous
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 database = SQLAlchemy(app)
+
+# FOR PLUGIN SYSTEM
+enabledPlugins = {}
+availablePlugins = plugin_manager.getAvailablePlugins()
+
+print("Importing plugins")
+for pluginPath in availablePlugins:
+	pluginName = plugin_manager.getPluginName(pluginPath)
+	print(" - Importing plugin {}".format(pluginName))
+	importedPlugin = plugin_manager.importPlugin(pluginPath)
+	enabledPlugins[pluginName] = importedPlugin
 
 @loginManager.user_loader
 def load_user(user_id):
@@ -219,7 +151,6 @@ def addSearch():
 	temp = BolhaSearch()
 	return render_template('add.html', parameters=json.dumps([key for key in temp.parameters]))
 
-"""
 @app.route("/admin")
 @login_required
 def sendAdminDashboard():
@@ -241,13 +172,12 @@ def sendPluginPage(pluginName):
 	return redirect(url_for('sendAdminDashboard'))
 
 @app.route("/admin/plugin/<pluginName>/data", methods=["GET", "POST"])
-def sentPluginData(pluginName):
+def sendPluginData(pluginName):
 	if pluginName in enabledPlugins:
 		plugin = enabledPlugins[pluginName]
 		data = plugin.returnJsonData(request.values)
 		return jsonify(data)
 	return jsonify({})
-"""
 
 def getAllSearchers():
 	searchers = database.session.query(Search).all()
